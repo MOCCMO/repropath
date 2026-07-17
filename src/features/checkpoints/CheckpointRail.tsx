@@ -4,6 +4,7 @@ import {
   Clock3,
   LockKeyhole
 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { checkpointPath } from "../../app/paths";
 import {
@@ -29,6 +30,22 @@ export function CheckpointRail({
   activeCheckpointId,
   statuses
 }: CheckpointRailProps) {
+  const activeCheckpointRef = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    if (
+      typeof window.matchMedia !== "function" ||
+      !window.matchMedia("(max-width: 900px)").matches
+    ) {
+      return;
+    }
+    activeCheckpointRef.current?.scrollIntoView?.({
+      behavior: "auto",
+      block: "nearest",
+      inline: "center"
+    });
+  }, [activeCheckpointId]);
+
   return (
     <aside className="checkpoint-rail">
       <p className="rail-label">Reproduction protocol</p>
@@ -41,6 +58,7 @@ export function CheckpointRail({
             return (
               <li key={definition.id}>
                 <Link
+                  ref={active ? activeCheckpointRef : undefined}
                   className={`rail-checkpoint is-${status} ${active ? "is-active" : ""}`}
                   to={checkpointPath(definition.id)}
                   aria-current={active ? "step" : undefined}

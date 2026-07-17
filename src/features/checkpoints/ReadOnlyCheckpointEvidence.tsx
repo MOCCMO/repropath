@@ -2,6 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { CheckpointId } from "../../domain/checkpointDefinitions";
 import type { FullProtocolProject } from "../../domain/fullProtocolSchemas";
+import { formatMetricResult } from "../../domain/passportGenerator";
 import { EvidenceProvenance } from "./EvidenceProvenance";
 import { SourceList } from "./SourceList";
 
@@ -19,9 +20,6 @@ type EvidenceDisplay = {
   provenance: FullProtocolProject["checkpoints"][CheckpointId]["evidence"]["provenance"];
   sources: FullProtocolProject["checkpoints"][CheckpointId]["sources"];
 };
-
-const percent = (value: number | null) =>
-  value === null ? "Not recorded" : `${(value * 100).toFixed(1)}%`;
 
 function evidenceDisplay(
   checkpointId: ReadOnlyCheckpointEvidenceProps["checkpointId"],
@@ -155,8 +153,20 @@ function evidenceDisplay(
       const checkpoint = project.checkpoints[checkpointId];
       return {
         fields: [
-          { label: "Paper result", value: percent(checkpoint.evidence.paperResult) },
-          { label: "Local result", value: percent(checkpoint.evidence.localResult) },
+          {
+            label: "Paper result",
+            value: formatMetricResult(
+              checkpoint.evidence.paperResult,
+              checkpoint.evidence.paperMetric
+            )
+          },
+          {
+            label: "Local result",
+            value: formatMetricResult(
+              checkpoint.evidence.localResult,
+              checkpoint.evidence.localMetric
+            )
+          },
           { label: "Paper dataset", value: checkpoint.evidence.paperDataset },
           { label: "Local dataset", value: checkpoint.evidence.localDataset },
           { label: "Paper metric", value: checkpoint.evidence.paperMetric },

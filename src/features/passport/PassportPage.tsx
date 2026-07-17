@@ -92,11 +92,11 @@ export function PassportPage() {
                   <tbody>
                     {passport.checkpoints.map((checkpoint) => (
                       <tr key={checkpoint.checkpointId}>
-                        <td>{checkpoint.order}</td>
-                        <td>{checkpoint.title}<small>{readableToken(checkpoint.evidenceMode)}</small></td>
-                        <td>{checkpointStatusLabels[checkpoint.derivedStatus]}</td>
-                        <td>{evidenceProvenanceLabels[checkpoint.evidenceProvenance]}</td>
-                        <td>{checkpoint.missingRequirements.length || "None"}</td>
+                        <td data-label="Order">{checkpoint.order}</td>
+                        <td data-label="Checkpoint">{checkpoint.title}<small>{readableToken(checkpoint.evidenceMode)}</small></td>
+                        <td data-label="Status">{checkpointStatusLabels[checkpoint.derivedStatus]}</td>
+                        <td data-label="Provenance">{evidenceProvenanceLabels[checkpoint.evidenceProvenance]}</td>
+                        <td data-label="Missing">{checkpoint.missingRequirements.length || "None"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -138,6 +138,12 @@ export function PassportPage() {
                 <div><strong>Paper</strong><span>{passport.comparison.paperDataset}</span><span>{passport.comparison.paperMetric}</span><span>{formatMetricResult(passport.comparison.paperResult, passport.comparison.paperMetric)}</span></div>
                 <div><strong>Local</strong><span>{passport.comparison.localDataset}</span><span>{passport.comparison.localMetric}</span><span>{formatMetricResult(passport.comparison.localResult, passport.comparison.localMetric)}</span></div>
               </div>
+              {passport.comparison.localMetric === "P@1" && (
+                <p className="metric-note">
+                  Local P@1 is displayed as a proportion: 0.875 means 87.5%,
+                  not 0.875%.
+                </p>
+              )}
               <div className="not-comparable">
                 <AlertTriangle size={18} />
                 <p><strong>{readableToken(passport.comparison.comparisonBasis ?? "not recorded")}.</strong> {passport.comparison.explanation || "No comparison explanation recorded."}</p>

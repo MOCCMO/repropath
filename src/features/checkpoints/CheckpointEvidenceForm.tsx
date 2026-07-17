@@ -74,7 +74,7 @@ export function CheckpointEvidenceForm({ evidence, onChange }: CheckpointEvidenc
         <FormField
           label="Local P@1"
           htmlFor="local-result"
-          hint="Enter a proportion from 0 to 1, not a percentage."
+          hint="Enter a proportion from 0 to 1. For example, 0.875 means 87.5%, not 0.875%."
           error={localResultError}
         >
           <input

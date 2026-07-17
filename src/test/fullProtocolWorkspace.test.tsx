@@ -104,7 +104,8 @@ describe("full protocol workspace", () => {
       })
     );
 
-    expect(screen.getByText("75.0%")).toBeInTheDocument();
+    expect(screen.getByText("0.75")).toBeInTheDocument();
+    expect(screen.queryByText("75.0%")).not.toBeInTheDocument();
     expect(
       screen.getByText("Curated seed modified by learner")
     ).toBeInTheDocument();
