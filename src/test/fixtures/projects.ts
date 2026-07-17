@@ -1,8 +1,8 @@
 import fastTextDemoJson from "../../data/fasttext-demo.json";
 import { curatedDemoSchema } from "../../domain/schemas";
 import {
-  createProjectFromDemo,
-  projectReducer
+  createFullProtocolProjectFromDemo,
+  createProjectFromDemo
 } from "../../state/projectReducer";
 
 export const demoFixture = curatedDemoSchema.parse(fastTextDemoJson);
@@ -12,20 +12,21 @@ export function verifiedProjectFixture() {
   return createProjectFromDemo(demoFixture, fixedTimestamp);
 }
 
+export function verifiedFullProtocolProjectFixture() {
+  return createFullProtocolProjectFromDemo(demoFixture, fixedTimestamp);
+}
+
 export function modifiedSeedProjectFixture() {
   const project = verifiedProjectFixture();
-  return projectReducer(
-    { project },
-    {
-      type: "update_evidence",
-      patch: { notes: "Learner added a note." },
-      now: "2026-07-17T08:01:00.000Z"
-    }
-  ).project!;
+  project.updatedAt = "2026-07-17T08:01:00.000Z";
+  project.evidence.notes = "Learner added a note.";
+  project.evidence.provenance = "verified_seed_modified_by_learner";
+  return project;
 }
 
 export function learnerEnteredProjectFixture() {
-  const project = verifiedProjectFixture();
-  project.evidence.provenance = "learner_entered";
+  const project = verifiedFullProtocolProjectFixture();
+  project.checkpoints["run-minimal-target"].evidence.provenance =
+    "learner_entered";
   return project;
 }

@@ -10,8 +10,21 @@ The fixture contains two deliberately separable topics, `science` and `sports`, 
 - It is not copied or sampled from the paper's datasets.
 - Its P@1 value cannot be compared with the paper's AG test accuracy.
 - A successful run verifies only the minimal method-level target.
+- The remaining AG News gap prevents a paper-benchmark reproduction claim while leaving the method-level smoke-test claim valid.
 
 The text is released under the repository's MIT license.
+
+## Observed checkout and build validation
+
+The first milestone cloned the official fastText repository into an isolated `/private/tmp` directory, then ran this setup/build command from the checkout. The temporary path is omitted because it is not part of the command:
+
+```text
+git checkout 1142dc4c4ecbc19cc16eee5cdd28472e689267e6 && make
+```
+
+The command completed successfully with exit status 0. The checkout reported `HEAD is now at 1142dc4 Delete .circleci directory (#1366)`, and the final build step linked `src/main.cc` and the compiled objects to `fasttext`. Apple clang emitted warnings about implicitly deleted defaulted functions, but they were non-fatal.
+
+This setup/build outcome is the environment-readiness diagnostic. The later `N`, `P@1`, and `R@1` evaluation output is run evidence and is not used to establish environment readiness.
 
 ## Observed validation run
 

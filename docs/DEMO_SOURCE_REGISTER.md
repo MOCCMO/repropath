@@ -18,6 +18,14 @@ Verified on 2026-07-17. A claim may appear in `src/data/fasttext-demo.json` only
 | `repo.results-script` | `classification-results.sh` prepares eight datasets and runs supervised training/testing for Table 1 | https://github.com/facebookresearch/fastText/blob/1142dc4c4ecbc19cc16eee5cdd28472e689267e6/classification-results.sh | Script header, dataset arrays, training and test commands | `map.repositoryComponents[0]` |
 | `repo.cli` | `supervised` trains a classifier and `test` reports P@k and R@k | https://github.com/facebookresearch/fastText/blob/1142dc4c4ecbc19cc16eee5cdd28472e689267e6/README.md | Text classification section | `map.repositoryComponents[1]` |
 | `demo.dataset-scope` | Bundled mini-news data is project-authored and is not AG News | ReproPath repository file `public/demo/README.md` | Important scope boundary | `target.datasetScope` |
+| `demo.gap.claim-impact` | The AG News gap prevents a paper-benchmark reproduction claim while leaving the method-level smoke-test claim valid | ReproPath repository file `public/demo/README.md` | Important scope boundary and claim impact | `map.benchmarkGapImpact` |
+
+## Observed-setup register
+
+| Claim ID | Required observation | Repository source | Status |
+|---|---|---|---|
+| `demo.setup.command` | `git checkout 1142dc4c4ecbc19cc16eee5cdd28472e689267e6 && make` | `public/demo/README.md`, Observed checkout and build validation; command paths normalized | Successful on 2026-07-17 |
+| `demo.setup.diagnostic` | Checkout resolved to `1142dc4`; `make` completed with exit 0 and linked the `fasttext` binary; compiler warnings were non-fatal | `public/demo/README.md`, Observed checkout and build validation; diagnostic outcome | Observed on 2026-07-17 |
 
 ## Observed-run register
 
@@ -29,6 +37,7 @@ The following fields must stay empty until the run is completed successfully.
 | `demo.run.train-command` | `./fasttext supervised -input <repropath>/public/demo/mini-news.train.txt -output <scratch>/repropath-mini -dim 10 -lr 0.25 -wordNgrams 2 -minCount 1 -bucket 10000 -epoch 25 -thread 1 -loss softmax` | `public/demo/README.md`, Observed validation run | Successful; paths normalized for portability |
 | `demo.run.test-command` | `./fasttext test <scratch>/repropath-mini.bin <repropath>/public/demo/mini-news.test.txt` | `public/demo/README.md`, Observed validation run | Successful; paths normalized for portability |
 | `demo.run.output` | `N 8`, `P@1 0.875`, `R@1 0.875` | `public/demo/README.md`, Observed validation output | Observed identically in two runs |
+| `demo.run.metric` | P@1 | `public/demo/README.md`, Observed validation output; local metric label | Observed identically in two runs |
 | `demo.run.result` | P@1 = `0.875` on mini-news | `public/demo/README.md`, Observed P@1 | Observed identically in two runs |
 
 The raw validation ran in an isolated `/private/tmp` checkout. The paths above are normalized; parameters and values are unchanged.

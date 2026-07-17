@@ -1,29 +1,36 @@
 import { describe, expect, it } from "vitest";
 import { projectReducer } from "../state/projectReducer";
 import {
+  demoFixture,
   learnerEnteredProjectFixture,
-  verifiedProjectFixture
+  verifiedFullProtocolProjectFixture
 } from "./fixtures/projects";
 
 describe("evidence provenance", () => {
   it("starts the curated seed as a verified demo run", () => {
-    expect(verifiedProjectFixture().evidence.provenance).toBe(
+    expect(
+      verifiedFullProtocolProjectFixture().checkpoints["run-minimal-target"]
+        .evidence.provenance
+    ).toBe(
       "verified_demo_run"
     );
   });
 
   it("marks a seeded record when a learner edits any evidence", () => {
-    const project = verifiedProjectFixture();
+    const project = verifiedFullProtocolProjectFixture();
     const next = projectReducer(
       { project },
       {
         type: "update_evidence",
         patch: { notes: "Learner note" },
+        demo: demoFixture,
         now: "2026-07-17T08:01:00.000Z"
       }
     );
 
-    expect(next.project?.evidence.provenance).toBe(
+    expect(
+      next.project?.checkpoints["run-minimal-target"].evidence.provenance
+    ).toBe(
       "verified_seed_modified_by_learner"
     );
   });
@@ -35,10 +42,13 @@ describe("evidence provenance", () => {
       {
         type: "update_evidence",
         patch: { notes: "Updated learner note" },
+        demo: demoFixture,
         now: "2026-07-17T08:01:00.000Z"
       }
     );
 
-    expect(next.project?.evidence.provenance).toBe("learner_entered");
+    expect(
+      next.project?.checkpoints["run-minimal-target"].evidence.provenance
+    ).toBe("learner_entered");
   });
 });

@@ -1,39 +1,125 @@
-import { useEffect, useMemo, useReducer, type PropsWithChildren } from "react";
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type PropsWithChildren
+} from "react";
 import fastTextDemoJson from "../data/fasttext-demo.json";
 import { curatedDemoSchema } from "../domain/schemas";
 import { ProjectContext, type ProjectContextValue } from "./projectContext";
 import { projectReducer } from "./projectReducer";
-import { loadProject, saveProject } from "./storage";
+import { loadProjectResult, saveProjectResult } from "./storage";
 
 const demo = curatedDemoSchema.parse(fastTextDemoJson);
 
 export function ProjectProvider({ children }: PropsWithChildren) {
-  const [state, dispatch] = useReducer(projectReducer, undefined, () => ({
-    project: loadProject()
-  }));
+  const [initialLoad] = useState(() => loadProjectResult());
+  const [state, dispatch] = useReducer(projectReducer, {
+    project: initialLoad.value
+  });
+  const [persistenceError, setPersistenceError] = useState<string | null>(
+    initialLoad.ok
+      ? null
+      : initialLoad.reason === "storage_unavailable"
+        ? "ReproPath could not access browser storage. Changes may not survive a refresh."
+        : "ReproPath could not load the saved project. Reset the curated demo to recover."
+  );
+  const [statusNotice, setStatusNotice] = useState<string | null>(null);
+  const pendingResetUpdatedAt = useRef<string | null>(null);
 
   useEffect(() => {
-    if (state.project) saveProject(state.project);
+    if (!state.project) return;
+    const project = state.project;
+    const result = saveProjectResult(project);
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      if (result.ok) {
+        setPersistenceError(null);
+        if (pendingResetUpdatedAt.current === project.updatedAt) {
+          pendingResetUpdatedAt.current = null;
+          setStatusNotice(
+            "Curated demo reset to the reviewed seven-checkpoint seed."
+          );
+        }
+        return;
+      }
+      if (pendingResetUpdatedAt.current === project.updatedAt) {
+        pendingResetUpdatedAt.current = null;
+        setStatusNotice(null);
+      }
+      setPersistenceError(
+        result.reason === "storage_unavailable"
+          ? "ReproPath could not save to browser storage. Keep this page open and try again."
+          : "This draft contains invalid evidence and was not saved. Fix the highlighted fields before leaving this page."
+      );
+    });
+    return () => {
+      active = false;
+    };
   }, [state.project]);
 
   const value = useMemo<ProjectContextValue>(
     () => ({
       demo,
       project: state.project,
-      openCuratedProject: () =>
+      persistenceError,
+      statusNotice,
+      openCuratedProject: () => {
+        setStatusNotice(null);
         dispatch({
           type: "open_curated",
           demo,
           now: new Date().toISOString()
-        }),
-      updateEvidence: (patch) =>
+        });
+      },
+      resetCuratedProject: () => {
+        const now = new Date().toISOString();
+        pendingResetUpdatedAt.current = now;
+        setStatusNotice(null);
+        dispatch({
+          type: "reset_curated",
+          demo,
+          now
+        });
+      },
+      updateEvidence: (patch) => {
+        setStatusNotice(null);
         dispatch({
           type: "update_evidence",
           patch,
+          demo,
           now: new Date().toISOString()
-        })
+        });
+      },
+      updateLearnerNotes: (notes) => {
+        setStatusNotice(null);
+        dispatch({
+          type: "update_learner_notes",
+          notes,
+          now: new Date().toISOString()
+        });
+      },
+      addLearnerGap: (gap) => {
+        setStatusNotice(null);
+        dispatch({
+          type: "add_learner_gap",
+          gap,
+          now: new Date().toISOString()
+        });
+      },
+      removeLearnerGap: (gapId) => {
+        setStatusNotice(null);
+        dispatch({
+          type: "remove_learner_gap",
+          gapId,
+          now: new Date().toISOString()
+        });
+      }
     }),
-    [state.project]
+    [persistenceError, state.project, statusNotice]
   );
 
   return (

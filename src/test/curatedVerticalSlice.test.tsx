@@ -34,11 +34,11 @@ describe("curated first vertical slice", () => {
     expect(
       screen.getByRole("heading", { name: /reproduction passport/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("Environment summary")).toBeInTheDocument();
+    expect(screen.getByText("Checkpoint 5: Run the minimal target")).toBeInTheDocument();
     expect(screen.getAllByText(/not comparable/i).length).toBeGreaterThan(0);
     expect(
-      screen.getByText("Verified seed modified by learner")
-    ).toBeInTheDocument();
+      screen.getAllByText("Verified seed modified by learner").length
+    ).toBeGreaterThan(0);
   });
 
   it("keeps an invalid numeric draft visible without crashing persistence", async () => {
@@ -72,12 +72,14 @@ describe("curated first vertical slice", () => {
     expect(screen.getAllByText(/^in progress$/i).length).toBeGreaterThan(0);
 
     await user.click(
-      screen.getByRole("button", { name: /save evidence & view passport/i })
+      screen.getByRole("button", { name: /validate evidence/i })
     );
 
     expect(
-      screen.getByRole("heading", { name: /record the minimal fastText run/i })
+      screen.getByRole("heading", { name: /run the minimal target/i })
     ).toBeInTheDocument();
-    expect(loadProject()?.evidence.localResult).not.toBe(2);
+    expect(
+      loadProject()?.checkpoints["run-minimal-target"].evidence.localResult
+    ).not.toBe(2);
   });
 });

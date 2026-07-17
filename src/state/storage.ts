@@ -1,29 +1,65 @@
-import { projectSchema, type Project } from "../domain/schemas";
+import fastTextDemoJson from "../data/fasttext-demo.json";
+import { fullProtocolProjectSchema, type FullProtocolProject } from "../domain/fullProtocolSchemas";
+import { hydrateProjectV1ToV2 } from "../domain/projectHydration";
+import { curatedDemoSchema } from "../domain/schemas";
 
 export const STORAGE_KEY = "repropath:v1:projects";
+const demo = curatedDemoSchema.parse(fastTextDemoJson);
 
-export function loadProject(storage: Storage = localStorage): Project | null {
-  const stored = storage.getItem(STORAGE_KEY);
-  if (!stored) return null;
+export type StorageResult<T> =
+  | { ok: true; value: T }
+  | {
+      ok: false;
+      value: null;
+      reason: "invalid_project" | "storage_unavailable";
+    };
+
+export function loadProjectResult(
+  storage: Storage = localStorage
+): StorageResult<FullProtocolProject | null> {
+  let stored: string | null;
+  try {
+    stored = storage.getItem(STORAGE_KEY);
+  } catch {
+    return { ok: false, value: null, reason: "storage_unavailable" };
+  }
+  if (!stored) return { ok: true, value: null };
+  try {
+    return {
+      ok: true,
+      value: hydrateProjectV1ToV2(JSON.parse(stored), demo)
+    };
+  } catch {
+    return { ok: false, value: null, reason: "invalid_project" };
+  }
+}
+
+export function loadProject(
+  storage: Storage = localStorage
+): FullProtocolProject | null {
+  return loadProjectResult(storage).value;
+}
+
+export function saveProjectResult(
+  project: FullProtocolProject,
+  storage: Storage = localStorage
+): StorageResult<FullProtocolProject> {
+  const parsed = fullProtocolProjectSchema.safeParse(project);
+  if (!parsed.success) {
+    return { ok: false, value: null, reason: "invalid_project" };
+  }
 
   try {
-    return projectSchema.parse(JSON.parse(stored));
+    storage.setItem(STORAGE_KEY, JSON.stringify(parsed.data));
+    return { ok: true, value: parsed.data };
   } catch {
-    return null;
+    return { ok: false, value: null, reason: "storage_unavailable" };
   }
 }
 
 export function saveProject(
-  project: Project,
+  project: FullProtocolProject,
   storage: Storage = localStorage
 ): boolean {
-  const parsed = projectSchema.safeParse(project);
-  if (!parsed.success) return false;
-
-  try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(parsed.data));
-    return true;
-  } catch {
-    return false;
-  }
+  return saveProjectResult(project, storage).ok;
 }
