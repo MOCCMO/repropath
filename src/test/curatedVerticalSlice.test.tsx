@@ -34,13 +34,11 @@ describe("curated first vertical slice", () => {
     expect(
       screen.getByRole("heading", { name: /reproduction passport/i })
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Checkpoint 5: Run the minimal target (in progress)")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Checkpoint 5: Run the minimal target")).toBeInTheDocument();
     expect(screen.getAllByText(/not comparable/i).length).toBeGreaterThan(0);
     expect(
-      screen.getByText("Verified seed modified by learner")
-    ).toBeInTheDocument();
+      screen.getAllByText("Verified seed modified by learner").length
+    ).toBeGreaterThan(0);
   });
 
   it("keeps an invalid numeric draft visible without crashing persistence", async () => {

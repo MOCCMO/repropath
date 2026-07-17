@@ -179,9 +179,10 @@ describe("full protocol workspace", () => {
     }).parentElement!;
     expect(
       within(missingSection).getByText(
-        "Checkpoint 5: Run the minimal target (in progress)"
+        "Checkpoint 5: Run the minimal target"
       )
     ).toBeInTheDocument();
+    expect(within(missingSection).getByText("In progress")).toBeInTheDocument();
   });
 
   it("exposes textual status labels and supports keyboard checkpoint navigation", async () => {
