@@ -78,7 +78,7 @@ describe("curated first vertical slice", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: /record the minimal fastText run/i })
+      screen.getByRole("heading", { name: /run the minimal target/i })
     ).toBeInTheDocument();
     expect(
       loadProject()?.checkpoints["run-minimal-target"].evidence.localResult

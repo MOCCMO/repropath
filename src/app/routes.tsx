@@ -11,7 +11,7 @@ export function AppRoutes() {
       <Route path="/" element={<IntakePage />} />
       <Route path={paths.map} element={<ReproductionMapPage />} />
       <Route
-        path={paths.checkpoint}
+        path={paths.checkpointRoute}
         element={<CheckpointWorkspacePage />}
       />
       <Route path={paths.passport} element={<PassportPage />} />
