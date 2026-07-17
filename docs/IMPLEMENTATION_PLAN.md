@@ -16,6 +16,8 @@ The first reviewed stage after the frozen milestone is limited to:
 
 Checkpoint pages, route handling, locked-state UI, and navigation remain excluded until this domain layer is reviewed.
 
+The domain evidence contract distinguishes setup validation from model evaluation: checkpoint 4 uses the observed pinned checkout/build command and its diagnostic outcome, while checkpoint 5 owns the training/evaluation commands and `P@1` output. Data confirmation records paper and local metrics separately, and every reproduction gap states its impact on the permissible claim.
+
 ## Objective
 
 Deliver a reviewable, three-minute vertical workflow for the curated fastText case:

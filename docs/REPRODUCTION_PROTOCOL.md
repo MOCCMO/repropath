@@ -12,11 +12,11 @@ The approved protocol order is:
 
 1. `understand-task` — sourced paper task, minimal target, expected output, and scope boundary;
 2. `connect-repository` — official repository, pinned commit, and relevant components;
-3. `confirm-data-and-metric` — paper dataset and metric, local dataset, scope confirmation, and comparison basis;
-4. `prepare-environment` — environment, pinned commit, readiness evidence, and readiness outcome;
+3. `confirm-data-and-metric` — paper and local datasets, paper and local metrics, scope confirmation, comparison basis, and scope explanation;
+4. `prepare-environment` — environment, pinned commit, setup command, setup/build diagnostic output, and readiness outcome;
 5. `run-minimal-target` — environment, commands, evaluation log, local result, run outcome, and dataset-scope confirmation;
 6. `compare-results` — paper and local results, datasets, metrics, comparison basis, and explanation;
-7. `record-gaps` — the existing AG News boundary plus learner notes and additional gaps.
+7. `record-gaps` — the existing AG News boundary, its impact on the reproduction claim, learner notes, and additional gaps.
 
 Checkpoints 1 through 4 are seeded as verified curated evidence. Checkpoint 5 preserves the verified editable run from the first milestone. Checkpoint 6 is derived from sourced paper facts and checkpoint 5 wherever possible. Checkpoint 7 starts with the sourced AG News gap and remains extensible.
 
@@ -43,6 +43,10 @@ Notes are optional. Required text fields are trimmed before validation. The resu
 - `blocked`: a prerequisite is not verified, environment readiness is blocked, or the recorded run failed.
 
 Checkpoint status is never stored as learner-authored evidence. It is derived from the checkpoint record and the ordered prerequisite graph.
+
+Checkpoint 3 remains `in_progress` unless both `paperMetric` and `localMetric` are present. Checkpoint 4 remains `in_progress` unless both `setupCommand` and `diagnosticOutput` are present. The evaluation values `N`, `P@1`, and `R@1` belong to checkpoint 5 and never count as environment-readiness evidence.
+
+Checkpoint 7 requires at least one gap. Every gap records an ID, description, impact on the claim, resolution status, evidence provenance, and source references. A gap with an empty description or empty `impactOnClaim` keeps the checkpoint `in_progress`.
 
 ## Project status derivation
 
@@ -88,5 +92,7 @@ Checkpoint evidence uses an independent three-state provenance model:
 - `verified_demo_run`: the untouched evidence seeded from the observed demo run.
 - `learner_entered`: evidence authored by a learner rather than seeded from the demo.
 - `verified_seed_modified_by_learner`: seeded evidence after any learner edit.
+
+Derived comparison evidence preserves the run checkpoint provenance exactly. In particular, `learner_entered` is not relabeled as `verified_seed_modified_by_learner`.
 
 Curated verification is `source_checked`; observed commands/results are `run_observed`.
