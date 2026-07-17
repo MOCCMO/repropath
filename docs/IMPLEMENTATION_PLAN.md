@@ -1,5 +1,21 @@
 # ReproPath First Vertical Slice
 
+## Approved full-protocol domain stage
+
+The first vertical slice is frozen on `main`. Work on `feat/full-reproduction-protocol` proceeds through Draft PR review and Vercel Preview deployments only; the production alias remains unchanged.
+
+The first reviewed stage after the frozen milestone is limited to:
+
+- seven checkpoint schemas and ordered definitions;
+- curated evidence seeding for checkpoints 1 through 4;
+- the editable seeded run as checkpoint 5;
+- derived comparison evidence for checkpoint 6;
+- the seeded, extensible AG News gap for checkpoint 7;
+- deterministic checkpoint and project status rules; and
+- one narrow, idempotent version-1 to version-2 hydration adapter.
+
+Checkpoint pages, route handling, locked-state UI, and navigation remain excluded until this domain layer is reviewed.
+
 ## Objective
 
 Deliver a reviewable, three-minute vertical workflow for the curated fastText case:
