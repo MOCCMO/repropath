@@ -1,32 +1,43 @@
 # ReproPath
 
-ReproPath is an Education-track web application for first-time NLP learners. It turns a paper-to-code reproduction attempt into a bounded target, evidence-gated checkpoint, and exportable Reproduction Passport.
+ReproPath is an Education-track web application for first-time NLP learners. It turns a paper-to-code reproduction attempt into a fixed, evidence-gated protocol and an exportable Reproduction Passport.
 
-This repository currently contains only the approved first vertical slice:
+The current curated workflow guides a learner through seven ordered checkpoints:
 
-`curated fastText intake -> reproduction map -> one run checkpoint -> Passport`
+1. Understand the task
+2. Connect the repository
+3. Confirm data and metric
+4. Prepare the environment
+5. Run the minimal target
+6. Compare results
+7. Record gaps
 
-## What this slice proves
+The demo uses *Bag of Tricks for Efficient Text Classification* and the official fastText repository. Checkpoints 1–4 contain read-only reviewed evidence, checkpoint 5 is a seeded editable run record, checkpoint 6 is derived from the recorded evidence, and checkpoint 7 preserves the paper-benchmark gap while allowing learner notes and additional gaps.
 
-- Curated paper and repository claims carry source URLs and locators.
-- A checkpoint cannot be verified without all required evidence.
-- Reproduction status is derived rather than selected by the learner.
-- Browser state survives refresh.
-- The Passport downloads as Markdown and JSON.
-- The bundled mini-news data is a project-authored teaching fixture, not AG News.
+## What the workspace proves
 
-ReproPath does not execute arbitrary repositories in the browser and does not claim that a mini-news result reproduces the paper's AG News benchmark.
+- Every curated paper and repository claim carries a source URL or repository locator.
+- Later checkpoints remain locked until their prerequisites are verified.
+- Checkpoint and project statuses are derived; a learner cannot select a successful outcome directly.
+- Removing required checkpoint 5 evidence immediately removes verification and updates checkpoint 6.
+- Evidence labels distinguish an untouched verified demo run, learner-entered evidence, and a verified seed modified by a learner.
+- Browser state survives refresh, including learner notes and valid additional gaps.
+- A confirmed **Reset curated demo** action restores the reviewed version-2 seed without clearing unrelated browser storage.
+- One Passport version-2 object drives both the on-screen preview and Markdown/JSON downloads.
+- The Passport includes all seven checkpoint records, comparison data, structured gaps, missing evidence, and explicit method-versus-benchmark claim boundaries.
+
+ReproPath does not execute arbitrary repositories in the browser. The bundled mini-news files are project-authored teaching fixtures, not AG News, so the observed `0.875` local result supports only the bounded method-level smoke test. It does not reproduce the paper's AG News benchmark.
 
 ## Run locally
 
-Requirements: Node.js 22 and npm.
+Requirements: Node.js 22 or newer and npm.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite.
+Open the local URL printed by Vite. No environment variables, API keys, backend, account, or paid runtime dependency are required.
 
 ## Verify
 
@@ -45,24 +56,36 @@ npm run preview
 
 ## Curated case and sources
 
-The demo is based on *Bag of Tricks for Efficient Text Classification* by Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov, and the official fastText repository pinned in the source register.
+The demo is based on *Bag of Tricks for Efficient Text Classification* by Armand Joulin, Edouard Grave, Piotr Bojanowski, and Tomas Mikolov, and the official fastText repository revision pinned in the source register.
 
 - [Curated claim register](docs/DEMO_SOURCE_REGISTER.md)
 - [Protocol and status rules](docs/REPRODUCTION_PROTOCOL.md)
-- [First-slice boundary](docs/IMPLEMENTATION_PLAN.md)
+- [Implementation boundaries](docs/IMPLEMENTATION_PLAN.md)
 - [Three-minute demo](docs/DEMO_SCRIPT.md)
 
-No copyrighted paper file or benchmark dataset is included.
+No copyrighted paper file, paper benchmark dataset, generated mockup asset, secret, or credential is included.
+
+## Persistence and reset
+
+The application stores one curated project in browser `localStorage`. A narrow, idempotent adapter opens projects created by the frozen first milestone as valid schema-version-2 projects while preserving checkpoint 5 evidence and provenance. Invalid drafts remain visible in the form but do not overwrite the last valid stored project.
+
+Use **Reset curated demo** before a rehearsal. After confirmation it replaces only the ReproPath project key with a fresh reviewed schema-version-2 project, restores the observed local result to `0.875`, removes learner notes and learner-created gaps, and leaves unrelated browser storage untouched.
+
+## Passport version 2
+
+Passport exports include generation and project timestamps, project/paper/repository metadata, the minimal target, deterministic project status, seven ordered checkpoint records, structured comparison data, structured gaps, learner notes, grouped missing evidence, source references, and the explicit claim boundary. Markdown and JSON are rendered from the same validated Passport object.
 
 ## Deployment
 
-The application builds to `dist/` and includes a Vercel SPA rewrite. Import the repository into Vercel with `npm run build` as the build command and `dist` as the output directory. No environment variables or API keys are required.
+The application builds to `dist/` and includes a Vercel SPA rewrite so direct checkpoint-route refreshes resolve correctly. Import the repository into Vercel with `npm run build` as the build command and `dist` as the output directory. No environment variables or API keys are required.
 
 ## Current limitations
 
-- One curated project only.
-- One checkpoint only.
-- Evidence provenance distinguishes an untouched verified seed, learner-entered evidence, and a verified seed modified by a learner. Structural validation does not prove that pasted logs are authentic.
-- No custom intake, reset control, storage migration, or full mobile optimization yet.
+- One curated fastText project only; there is no custom paper intake.
+- Curated evidence is reviewed and read-only, but ReproPath does not independently authenticate learner-pasted commands or logs.
+- The browser does not run fastText or analyze papers and repositories automatically.
+- No backend, model/API integration, authentication, multi-user storage, or general migration framework.
+- Browser storage is device-local; advanced recovery and storage migration remain out of scope.
+- Detailed mobile refinement and exhaustive browser coverage remain future work.
 
-These exclusions remain deliberate for this approved first milestone.
+These boundaries are deliberate: the current release prioritizes a complete, auditable three-minute reproduction workflow.
