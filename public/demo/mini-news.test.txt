@@ -1,0 +1,8 @@
+__label__science researchers repeat the laboratory experiment with a new molecule
+__label__science the telescope records data from a distant planet
+__label__science scientists analyze energy measurements from the space probe
+__label__science the biology laboratory examines cells in the sample
+__label__sports the team wins the final match with a late goal
+__label__sports the tennis coach prepares a player for the tournament
+__label__sports fans watch the championship game inside the stadium
+__label__sports the runner trains for the international race

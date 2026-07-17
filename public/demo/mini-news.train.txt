@@ -1,0 +1,24 @@
+__label__science laboratory researchers examine a molecule with a microscope
+__label__science astronomers observe a distant planet through a telescope
+__label__science physics students measure energy in a controlled experiment
+__label__science the biology team studies cells and genetic material
+__label__science a chemist records the reaction inside the laboratory
+__label__science scientists publish results from a climate experiment
+__label__science the space probe sends measurements back to researchers
+__label__science a medical laboratory tests a new diagnostic method
+__label__science engineers calibrate a sensor for the science mission
+__label__science researchers compare data from two telescope observations
+__label__science the experiment measures temperature pressure and energy
+__label__science a university science team analyzes the laboratory sample
+__label__sports the football team scores a goal in the final match
+__label__sports a tennis player wins the tournament after three sets
+__label__sports the coach prepares athletes for the championship game
+__label__sports fans celebrate a late goal at the stadium
+__label__sports the basketball team practices passing before the match
+__label__sports a runner finishes the race with a personal record
+__label__sports the goalkeeper saves a penalty during the tournament
+__label__sports players review the game plan with their coach
+__label__sports the baseball club wins after an extra inning
+__label__sports an athlete trains for the international competition
+__label__sports the referee starts the match at the crowded stadium
+__label__sports the team lifts the championship trophy after the game

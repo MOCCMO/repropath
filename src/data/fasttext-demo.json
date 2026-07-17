@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "id": "fasttext-bag-of-tricks",
+  "mode": "curated",
+  "paper": {
+    "title": {
+      "value": "Bag of Tricks for Efficient Text Classification",
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068/",
+          "locator": "Title and citation metadata",
+          "claimId": "paper.title"
+        }
+      ]
+    },
+    "authors": {
+      "value": ["Armand Joulin", "Edouard Grave", "Piotr Bojanowski", "Tomas Mikolov"],
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068/",
+          "locator": "Citation metadata",
+          "claimId": "paper.authors"
+        }
+      ]
+    },
+    "venue": {
+      "value": "EACL 2017, Short Papers, pages 427–431",
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068/",
+          "locator": "Anthology metadata",
+          "claimId": "paper.venue"
+        }
+      ]
+    },
+    "version": {
+      "value": "ACL Anthology E17-2068",
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068/",
+          "locator": "Anthology identifier",
+          "claimId": "paper.version"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "url": {
+      "value": "https://github.com/facebookresearch/fastText",
+      "provenance": "repository",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://github.com/facebookresearch/fastText",
+          "locator": "Official repository root",
+          "claimId": "repo.url"
+        }
+      ]
+    },
+    "commit": {
+      "value": "1142dc4c4ecbc19cc16eee5cdd28472e689267e6",
+      "provenance": "repository",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://github.com/facebookresearch/fastText/commit/1142dc4c4ecbc19cc16eee5cdd28472e689267e6",
+          "locator": "Archived main HEAD verified with git ls-remote on 2026-07-17",
+          "claimId": "repo.commit"
+        }
+      ]
+    },
+    "license": {
+      "value": "MIT",
+      "provenance": "repository",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://github.com/facebookresearch/fastText/blob/1142dc4c4ecbc19cc16eee5cdd28472e689267e6/LICENSE",
+          "locator": "License file",
+          "claimId": "repo.license"
+        }
+      ]
+    }
+  },
+  "map": {
+    "paperTask": {
+      "value": "Supervised text classification; the paper evaluates sentiment analysis and tag prediction.",
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068.pdf",
+          "locator": "Sections 1 and 3",
+          "claimId": "paper.task"
+        }
+      ]
+    },
+    "paperDataset": {
+      "value": "AG, one of the eight sentiment-analysis datasets used in the paper's evaluation protocol.",
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068.pdf",
+          "locator": "Section 3.1 and Table 1, pages 428–429",
+          "claimId": "paper.ag-dataset"
+        }
+      ]
+    },
+    "paperMetric": {
+      "value": "Test accuracy (%)",
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068.pdf",
+          "locator": "Table 1 caption, page 429",
+          "claimId": "paper.metric"
+        }
+      ]
+    },
+    "paperResult": {
+      "value": 0.925,
+      "provenance": "paper",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://aclanthology.org/E17-2068.pdf",
+          "locator": "Table 1, fastText h=10 bigram row, AG column, page 429",
+          "claimId": "paper.ag-result"
+        }
+      ]
+    },
+    "repositoryComponents": {
+      "value": [
+        {
+          "path": "classification-results.sh",
+          "role": "Prepares the eight evaluation datasets and runs the Table 1 training and test commands."
+        },
+        {
+          "path": "README.md",
+          "role": "Documents the supervised, test, and prediction command-line workflow."
+        }
+      ],
+      "provenance": "repository",
+      "verification": "source_checked",
+      "sources": [
+        {
+          "url": "https://github.com/facebookresearch/fastText/blob/1142dc4c4ecbc19cc16eee5cdd28472e689267e6/classification-results.sh",
+          "locator": "Script header, dataset arrays, training and test commands",
+          "claimId": "repo.results-script"
+        },
+        {
+          "url": "https://github.com/facebookresearch/fastText/blob/1142dc4c4ecbc19cc16eee5cdd28472e689267e6/README.md",
+          "locator": "Text classification section",
+          "claimId": "repo.cli"
+        }
+      ]
+    },
+    "minimalTarget": {
+      "value": {
+        "kind": "method_smoke_test",
+        "title": "Run supervised fastText training and evaluation on mini-news",
+        "dataset": "Project-authored mini-news teaching data",
+        "expectedOutput": "A completed test output containing N, P@1, and R@1.",
+        "successCriteria": [
+          "Use the pinned official fastText commit.",
+          "Train on mini-news.train.txt and test on mini-news.test.txt.",
+          "Record environment, commands, log excerpt, and numeric P@1.",
+          "Keep the AG benchmark gap explicit."
+        ]
+      },
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed validation run and scope boundary",
+          "claimId": "demo.dataset-scope"
+        },
+        {
+          "url": "https://github.com/facebookresearch/fastText/blob/1142dc4c4ecbc19cc16eee5cdd28472e689267e6/README.md",
+          "locator": "Text classification section",
+          "claimId": "repo.cli"
+        }
+      ]
+    },
+    "benchmarkGap": {
+      "value": "The local fixture is not AG News, so its P@1 cannot reproduce or be compared numerically with the paper's AG test accuracy.",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Important scope boundary",
+          "claimId": "demo.dataset-scope"
+        },
+        {
+          "url": "https://aclanthology.org/E17-2068.pdf",
+          "locator": "Table 1, page 429",
+          "claimId": "paper.ag-result"
+        }
+      ]
+    }
+  },
+  "observedRun": {
+    "environment": {
+      "value": "macOS 26.5.1; arm64; Apple clang 21.0.0; fastText 1142dc4c4ecbc19cc16eee5cdd28472e689267e6",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed validation run",
+          "claimId": "demo.run.environment"
+        }
+      ]
+    },
+    "trainingCommand": {
+      "value": "./fasttext supervised -input <repropath>/public/demo/mini-news.train.txt -output <scratch>/repropath-mini -dim 10 -lr 0.25 -wordNgrams 2 -minCount 1 -bucket 10000 -epoch 25 -thread 1 -loss softmax",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed validation run; paths normalized for portability",
+          "claimId": "demo.run.train-command"
+        }
+      ]
+    },
+    "evaluationCommand": {
+      "value": "./fasttext test <scratch>/repropath-mini.bin <repropath>/public/demo/mini-news.test.txt",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed validation run; paths normalized for portability",
+          "claimId": "demo.run.test-command"
+        }
+      ]
+    },
+    "logExcerpt": {
+      "value": "N\t8\nP@1\t0.875\nR@1\t0.875",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed validation output, reproduced twice",
+          "claimId": "demo.run.output"
+        }
+      ]
+    },
+    "localResult": {
+      "value": 0.875,
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed P@1, reproduced twice",
+          "claimId": "demo.run.result"
+        }
+      ]
+    }
+  }
+}
