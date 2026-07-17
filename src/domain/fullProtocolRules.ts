@@ -1,5 +1,6 @@
 import {
   hasAnyRunEvidence,
+  getMissingEvidenceFields,
   isValidLocalResult,
   deriveCheckpointStatus as deriveRunCheckpointStatus
 } from "./checkpointRules";
@@ -17,6 +18,10 @@ import type {
 } from "./fullProtocolSchemas";
 
 const hasText = (value: string) => value.trim().length > 0;
+
+const compactRequirements = <T extends string>(
+  values: Array<T | false>
+): T[] => values.filter((value): value is T => value !== false);
 
 function deriveUnderstandTaskStatus(
   project: FullProtocolProject
@@ -171,6 +176,158 @@ export function deriveIntrinsicCheckpointStatus(
     case "record-gaps":
       return deriveRecordGapsStatus(project);
   }
+}
+
+const requirementLabels = {
+  "understand-task": {
+    paperTask: "Paper task",
+    reproductionTarget: "Minimal reproduction target",
+    expectedOutput: "Expected output",
+    scopeBoundary: "Scope boundary"
+  },
+  "connect-repository": {
+    repositoryUrl: "Official repository URL",
+    repositoryCommit: "Pinned repository commit",
+    components: "Relevant repository components"
+  },
+  "confirm-data-and-metric": {
+    paperDataset: "Paper dataset",
+    localDataset: "Local dataset",
+    paperMetric: "Paper metric",
+    localMetric: "Local metric",
+    datasetScopeConfirmed: "Dataset scope confirmation",
+    comparisonBasis: "Comparison basis",
+    scopeExplanation: "Scope explanation"
+  },
+  "prepare-environment": {
+    environmentSummary: "Environment summary",
+    repositoryCommit: "Pinned repository commit",
+    setupCommand: "Setup command",
+    diagnosticOutput: "Diagnostic output",
+    readiness: "Environment readiness"
+  },
+  "compare-results": {
+    paperDataset: "Paper dataset",
+    localDataset: "Local dataset",
+    paperMetric: "Paper metric",
+    localMetric: "Local metric",
+    paperResult: "Paper result",
+    localResult: "Local result",
+    comparisonBasis: "Comparison basis",
+    explanation: "Comparison explanation"
+  }
+} as const;
+
+export function getIntrinsicMissingRequirements(
+  checkpointId: CheckpointId,
+  project: FullProtocolProject
+): string[] {
+  switch (checkpointId) {
+    case "understand-task": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      return compactRequirements([
+        !hasText(evidence.paperTask) && requirementLabels[checkpointId].paperTask,
+        !hasText(evidence.reproductionTarget) && requirementLabels[checkpointId].reproductionTarget,
+        !hasText(evidence.expectedOutput) && requirementLabels[checkpointId].expectedOutput,
+        !hasText(evidence.scopeBoundary) && requirementLabels[checkpointId].scopeBoundary
+      ]);
+    }
+    case "connect-repository": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      const componentsComplete =
+        evidence.components.length > 0 &&
+        evidence.components.every(
+          (component) => hasText(component.path) && hasText(component.role)
+        );
+      return compactRequirements([
+        !hasText(evidence.repositoryUrl) && requirementLabels[checkpointId].repositoryUrl,
+        !hasText(evidence.repositoryCommit) && requirementLabels[checkpointId].repositoryCommit,
+        !componentsComplete && requirementLabels[checkpointId].components
+      ]);
+    }
+    case "confirm-data-and-metric": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      return compactRequirements([
+        !hasText(evidence.paperDataset) && requirementLabels[checkpointId].paperDataset,
+        !hasText(evidence.localDataset) && requirementLabels[checkpointId].localDataset,
+        !hasText(evidence.paperMetric) && requirementLabels[checkpointId].paperMetric,
+        !hasText(evidence.localMetric) && requirementLabels[checkpointId].localMetric,
+        !evidence.datasetScopeConfirmed && requirementLabels[checkpointId].datasetScopeConfirmed,
+        evidence.comparisonBasis === null && requirementLabels[checkpointId].comparisonBasis,
+        !hasText(evidence.scopeExplanation) && requirementLabels[checkpointId].scopeExplanation
+      ]);
+    }
+    case "prepare-environment": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      return compactRequirements([
+        !hasText(evidence.environmentSummary) && requirementLabels[checkpointId].environmentSummary,
+        !hasText(evidence.repositoryCommit) && requirementLabels[checkpointId].repositoryCommit,
+        !hasText(evidence.setupCommand) && requirementLabels[checkpointId].setupCommand,
+        !hasText(evidence.diagnosticOutput) && requirementLabels[checkpointId].diagnosticOutput,
+        evidence.readiness !== "ready" && requirementLabels[checkpointId].readiness
+      ]);
+    }
+    case "run-minimal-target": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      const labels = {
+        environment: "Environment summary",
+        trainingCommand: "Training command",
+        evaluationCommand: "Evaluation command",
+        logExcerpt: "Evaluation log excerpt",
+        localResult: "Local result",
+        resultDatasetScopeConfirmed: "Dataset scope confirmation",
+        runOutcome: "Successful run outcome"
+      } as const;
+      const requirements = getMissingEvidenceFields(evidence).map(
+        (field) => labels[field]
+      );
+      if (evidence.runOutcome === "failed" && !requirements.includes(labels.runOutcome)) {
+        requirements.push(labels.runOutcome);
+      }
+      return requirements;
+    }
+    case "compare-results": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      return compactRequirements([
+        !hasText(evidence.paperDataset) && requirementLabels[checkpointId].paperDataset,
+        !hasText(evidence.localDataset) && requirementLabels[checkpointId].localDataset,
+        !hasText(evidence.paperMetric) && requirementLabels[checkpointId].paperMetric,
+        !hasText(evidence.localMetric) && requirementLabels[checkpointId].localMetric,
+        !isValidLocalResult(evidence.paperResult) && requirementLabels[checkpointId].paperResult,
+        !isValidLocalResult(evidence.localResult) && requirementLabels[checkpointId].localResult,
+        evidence.comparisonBasis === null && requirementLabels[checkpointId].comparisonBasis,
+        !hasText(evidence.explanation) && requirementLabels[checkpointId].explanation
+      ]);
+    }
+    case "record-gaps": {
+      const evidence = project.checkpoints[checkpointId].evidence;
+      if (evidence.gaps.length === 0) return ["At least one reproduction gap"];
+      return compactRequirements(evidence.gaps.flatMap((gap, index) => [
+        !hasText(gap.description) && `Gap ${index + 1} description`,
+        !hasText(gap.impactOnClaim) && `Gap ${index + 1} impact on claim`
+      ]));
+    }
+  }
+}
+
+export function getCheckpointMissingRequirements(
+  checkpointId: CheckpointId,
+  project: FullProtocolProject,
+  statuses = deriveCheckpointStatuses(project)
+): string[] {
+  const definition = checkpointDefinitions.find(({ id }) => id === checkpointId)!;
+  const prerequisiteRequirements = definition.prerequisites
+    .filter((prerequisite) => statuses[prerequisite] !== "verified")
+    .map((prerequisite) => {
+      const prerequisiteDefinition = checkpointDefinitions.find(
+        ({ id }) => id === prerequisite
+      )!;
+      return `Prerequisite checkpoint ${prerequisiteDefinition.order}: ${prerequisiteDefinition.title} must be verified`;
+    });
+  return [
+    ...prerequisiteRequirements,
+    ...getIntrinsicMissingRequirements(checkpointId, project)
+  ];
 }
 
 export function deriveCheckpointStatuses(

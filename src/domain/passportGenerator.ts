@@ -1,93 +1,175 @@
 import { z } from "zod";
 import {
-  evidenceFieldLabels,
-  getMissingEvidenceFields,
-  isValidLocalResult
-} from "./checkpointRules";
-import {
-  deriveReproductionStatus,
-  reproductionStatusLabels
-} from "./reproductionStatus";
-import {
-  checkpointDefinitions
+  checkpointDefinitions,
+  checkpointIdSchema,
+  evidenceModeSchema,
+  type CheckpointId
 } from "./checkpointDefinitions";
+import { isValidLocalResult } from "./checkpointRules";
+import {
+  compareResultsEvidenceSchema,
+  confirmDataAndMetricEvidenceSchema,
+  connectRepositoryEvidenceSchema,
+  prepareEnvironmentEvidenceSchema,
+  recordGapsEvidenceSchema,
+  reproductionGapSchema,
+  understandTaskEvidenceSchema,
+  type FullProtocolProject
+} from "./fullProtocolSchemas";
 import {
   deriveCheckpointStatuses,
-  deriveProjectReproductionStatus
+  deriveProjectReproductionStatus,
+  getCheckpointMissingRequirements
 } from "./fullProtocolRules";
-import type { FullProtocolProject } from "./fullProtocolSchemas";
-import type {
-  CuratedDemo,
-  Project,
-  SourceReference
-} from "./schemas";
 import {
+  checkpointStatusSchema,
   evidenceProvenanceSchema,
   reproductionStatusSchema,
-  sourceReferenceSchema
+  runEvidenceSchema,
+  sourceReferenceSchema,
+  type CuratedDemo,
+  type EvidenceProvenance,
+  type SourceReference
 } from "./schemas";
+import { reproductionStatusLabels } from "./reproductionStatus";
 
 export const evidenceProvenanceLabels = {
   verified_demo_run: "Verified demo run",
   learner_entered: "Learner entered",
   verified_seed_modified_by_learner: "Verified seed modified by learner"
-} satisfies Record<z.infer<typeof evidenceProvenanceSchema>, string>;
+} satisfies Record<EvidenceProvenance, string>;
 
-export const passportSchema = z.object({
-  schemaVersion: z.literal(1),
+export const checkpointStatusLabels = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  verified: "Verified",
+  blocked: "Blocked"
+} as const;
+
+const checkpointRecordBase = {
+  order: z.number().int().min(1).max(7),
+  title: z.string().min(1),
+  derivedStatus: checkpointStatusSchema,
+  evidenceMode: evidenceModeSchema,
+  evidenceProvenance: evidenceProvenanceSchema,
+  sourceReferences: z.array(sourceReferenceSchema),
+  missingRequirements: z.array(z.string().min(1))
+};
+
+export const passportCheckpointRecordSchema = z.discriminatedUnion(
+  "checkpointId",
+  [
+    z.object({
+      checkpointId: z.literal("understand-task"),
+      ...checkpointRecordBase,
+      evidence: understandTaskEvidenceSchema
+    }),
+    z.object({
+      checkpointId: z.literal("connect-repository"),
+      ...checkpointRecordBase,
+      evidence: connectRepositoryEvidenceSchema
+    }),
+    z.object({
+      checkpointId: z.literal("confirm-data-and-metric"),
+      ...checkpointRecordBase,
+      evidence: confirmDataAndMetricEvidenceSchema
+    }),
+    z.object({
+      checkpointId: z.literal("prepare-environment"),
+      ...checkpointRecordBase,
+      evidence: prepareEnvironmentEvidenceSchema
+    }),
+    z.object({
+      checkpointId: z.literal("run-minimal-target"),
+      ...checkpointRecordBase,
+      evidence: runEvidenceSchema
+    }),
+    z.object({
+      checkpointId: z.literal("compare-results"),
+      ...checkpointRecordBase,
+      evidence: compareResultsEvidenceSchema
+    }),
+    z.object({
+      checkpointId: z.literal("record-gaps"),
+      ...checkpointRecordBase,
+      evidence: recordGapsEvidenceSchema
+    })
+  ]
+);
+
+export const passportMissingEvidenceGroupSchema = z.object({
+  checkpointId: checkpointIdSchema,
+  order: z.number().int().min(1).max(7),
+  title: z.string().min(1),
+  status: checkpointStatusSchema,
+  requirements: z.array(z.string().min(1)).min(1)
+});
+
+export const passportV2Schema = z.object({
+  schemaVersion: z.literal(2),
   generatedAt: z.iso.datetime(),
   sourceProjectUpdatedAt: z.iso.datetime(),
-  projectId: z.string().min(1),
+  project: z.object({
+    id: z.string().min(1),
+    schemaVersion: z.literal(2)
+  }),
   paper: z.object({
-    title: z.string(),
-    authors: z.array(z.string()),
-    venue: z.string(),
-    version: z.string()
+    title: z.string().min(1),
+    authors: z.array(z.string().min(1)).min(1),
+    venue: z.string().min(1),
+    version: z.string().min(1)
   }),
   repository: z.object({
     url: z.url(),
     commit: z.string().regex(/^[0-9a-f]{40}$/),
-    license: z.string()
+    license: z.string().min(1)
   }),
-  target: z.object({
+  minimalTarget: z.object({
     kind: z.literal("method_smoke_test"),
-    title: z.string(),
-    dataset: z.string(),
-    expectedOutput: z.string(),
-    successCriteria: z.array(z.string())
+    title: z.string().min(1),
+    dataset: z.string().min(1),
+    expectedOutput: z.string().min(1),
+    successCriteria: z.array(z.string().min(1)).min(1)
   }),
-  environment: z.string(),
-  commands: z.object({
-    training: z.string(),
-    evaluation: z.string()
-  }),
-  evidence: z.object({
-    logExcerpt: z.string(),
-    localResult: z.number().finite().min(0).max(1).nullable(),
-    runOutcome: z.enum(["not_recorded", "succeeded", "failed"]),
-    provenance: evidenceProvenanceSchema,
-    notes: z.string()
-  }),
+  overallStatus: reproductionStatusSchema,
+  overallStatusLabel: z.string().min(1),
+  checkpoints: z.array(passportCheckpointRecordSchema).length(7),
   comparison: z.object({
     paperDataset: z.string(),
-    paperMetric: z.string(),
-    paperResult: z.number().finite().min(0).max(1),
     localDataset: z.string(),
+    paperMetric: z.string(),
+    localMetric: z.string(),
+    paperResult: z.number().finite().min(0).max(1).nullable(),
     localResult: z.number().finite().min(0).max(1).nullable(),
-    basis: z.literal("not_comparable"),
+    comparisonBasis: z.enum(["comparable", "not_comparable"]).nullable(),
     explanation: z.string()
   }),
-  gaps: z.array(z.string()),
-  missingFields: z.array(z.string()),
-  status: reproductionStatusSchema,
-  statusLabel: z.string(),
-  sources: z.array(sourceReferenceSchema)
+  gaps: z.array(reproductionGapSchema),
+  learnerNotes: z.string(),
+  missingEvidenceByCheckpoint: z.array(passportMissingEvidenceGroupSchema),
+  claimBoundary: z.object({
+    minimalMethodTarget: z.enum(["reproduced", "not_reproduced"]),
+    paperBenchmark: z.enum(["reproduced", "not_attempted", "unsupported"]),
+    explanation: z.string().min(1)
+  }),
+  sourceReferences: z.array(sourceReferenceSchema)
 });
 
-export type Passport = z.infer<typeof passportSchema>;
+export type PassportCheckpointRecord = z.infer<
+  typeof passportCheckpointRecordSchema
+>;
+export type PassportV2 = z.infer<typeof passportV2Schema>;
 
-function collectSources(demo: CuratedDemo): SourceReference[] {
-  const sourceLists: SourceReference[][] = [
+function uniqueSources(sourceLists: SourceReference[][]): SourceReference[] {
+  const sources = new Map<string, SourceReference>();
+  sourceLists.flat().forEach((source) => {
+    sources.set(`${source.claimId}:${source.url}:${source.locator}`, source);
+  });
+  return [...sources.values()];
+}
+
+function collectDemoSources(demo: CuratedDemo): SourceReference[] {
+  return uniqueSources([
     demo.paper.title.sources,
     demo.paper.authors.sources,
     demo.paper.venue.sources,
@@ -111,68 +193,103 @@ function collectSources(demo: CuratedDemo): SourceReference[] {
     demo.observedRun.logExcerpt.sources,
     demo.observedRun.localMetric.sources,
     demo.observedRun.localResult.sources
-  ];
-
-  const unique = new Map<string, SourceReference>();
-  sourceLists.flat().forEach((source) => {
-    unique.set(`${source.claimId}:${source.url}:${source.locator}`, source);
-  });
-  return [...unique.values()];
+  ]);
 }
 
-const isFullProtocolProject = (
-  project: Project | FullProtocolProject
-): project is FullProtocolProject => project.schemaVersion === 2;
-
-const statusText = (status: string) => status.replaceAll("_", " ");
+function normalizedEvidence(
+  checkpointId: CheckpointId,
+  project: FullProtocolProject
+) {
+  const evidence = project.checkpoints[checkpointId].evidence;
+  if (checkpointId === "run-minimal-target") {
+    return {
+      ...project.checkpoints[checkpointId].evidence,
+      localResult: isValidLocalResult(
+        project.checkpoints[checkpointId].evidence.localResult
+      )
+        ? project.checkpoints[checkpointId].evidence.localResult
+        : null
+    };
+  }
+  if (checkpointId === "compare-results") {
+    return {
+      ...project.checkpoints[checkpointId].evidence,
+      paperResult: isValidLocalResult(
+        project.checkpoints[checkpointId].evidence.paperResult
+      )
+        ? project.checkpoints[checkpointId].evidence.paperResult
+        : null,
+      localResult: isValidLocalResult(
+        project.checkpoints[checkpointId].evidence.localResult
+      )
+        ? project.checkpoints[checkpointId].evidence.localResult
+        : null
+    };
+  }
+  return evidence;
+}
 
 export function generatePassport(
   demo: CuratedDemo,
-  project: Project | FullProtocolProject,
+  project: FullProtocolProject,
   generatedAt = new Date().toISOString()
-): Passport {
-  const fullProtocol = isFullProtocolProject(project);
-  const runEvidence = fullProtocol
-    ? project.checkpoints["run-minimal-target"].evidence
-    : project.evidence;
-  const comparisonEvidence = fullProtocol
-    ? project.checkpoints["compare-results"].evidence
-    : null;
-  const checkpointStatuses = fullProtocol
-    ? deriveCheckpointStatuses(project)
-    : null;
-  const status = fullProtocol
-    ? deriveProjectReproductionStatus(project, checkpointStatuses!)
-    : deriveReproductionStatus(runEvidence);
-  const localResult = isValidLocalResult(runEvidence.localResult)
-    ? runEvidence.localResult
-    : null;
-  const missingFields = fullProtocol
-    ? checkpointDefinitions
-        .filter(
-          ({ id }) => checkpointStatuses?.[id] !== "verified"
-        )
-        .map(
-          ({ id, order, title }) =>
-            `Checkpoint ${order}: ${title} (${statusText(checkpointStatuses![id])})`
-        )
-    : getMissingEvidenceFields(runEvidence).map(
-        (field) => evidenceFieldLabels[field]
-      );
-  const projectSources = fullProtocol
-    ? Object.values(project.checkpoints).flatMap(
-        (checkpoint) => checkpoint.sources
+): PassportV2 {
+  const statuses = deriveCheckpointStatuses(project);
+  const overallStatus = deriveProjectReproductionStatus(project, statuses);
+  const checkpoints = checkpointDefinitions.map((definition) => {
+    const checkpoint = project.checkpoints[definition.id];
+    return {
+      checkpointId: definition.id,
+      order: definition.order,
+      title: definition.title,
+      derivedStatus: statuses[definition.id],
+      evidenceMode: definition.evidenceMode,
+      evidenceProvenance: checkpoint.evidence.provenance,
+      evidence: normalizedEvidence(definition.id, project),
+      sourceReferences: checkpoint.sources,
+      missingRequirements: getCheckpointMissingRequirements(
+        definition.id,
+        project,
+        statuses
       )
-    : [];
-  const sources = new Map<string, SourceReference>();
-  [...collectSources(demo), ...projectSources].forEach((source) => {
-    sources.set(`${source.claimId}:${source.url}:${source.locator}`, source);
+    };
   });
-  return passportSchema.parse({
-    schemaVersion: 1,
+  const comparisonEvidence = project.checkpoints["compare-results"].evidence;
+  const runStatus = statuses["run-minimal-target"];
+  const paperBenchmark =
+    comparisonEvidence.comparisonBasis === "not_comparable"
+      ? "not_attempted"
+      : "unsupported";
+  const gaps = project.checkpoints["record-gaps"].evidence.gaps;
+  const missingEvidenceByCheckpoint = checkpoints
+    .filter(
+      (checkpoint) =>
+        checkpoint.derivedStatus !== "verified" ||
+        checkpoint.missingRequirements.length > 0
+    )
+    .map((checkpoint) => ({
+      checkpointId: checkpoint.checkpointId,
+      order: checkpoint.order,
+      title: checkpoint.title,
+      status: checkpoint.derivedStatus,
+      requirements:
+        checkpoint.missingRequirements.length > 0
+          ? checkpoint.missingRequirements
+          : ["Checkpoint must be verified"]
+    }));
+  const projectSources = Object.values(project.checkpoints).flatMap(
+    (checkpoint) => checkpoint.sources
+  );
+  const gapSources = gaps.flatMap((gap) => gap.sources);
+
+  return passportV2Schema.parse({
+    schemaVersion: 2,
     generatedAt,
     sourceProjectUpdatedAt: project.updatedAt,
-    projectId: project.id,
+    project: {
+      id: project.id,
+      schemaVersion: project.schemaVersion
+    },
     paper: {
       title: demo.paper.title.value,
       authors: demo.paper.authors.value,
@@ -184,149 +301,218 @@ export function generatePassport(
       commit: demo.repository.commit.value,
       license: demo.repository.license.value
     },
-    target: demo.map.minimalTarget.value,
-    environment: runEvidence.environment,
-    commands: {
-      training: runEvidence.trainingCommand,
-      evaluation: runEvidence.evaluationCommand
-    },
-    evidence: {
-      logExcerpt: runEvidence.logExcerpt,
-      localResult,
-      runOutcome: runEvidence.runOutcome,
-      provenance: runEvidence.provenance,
-      notes: runEvidence.notes
-    },
+    minimalTarget: demo.map.minimalTarget.value,
+    overallStatus,
+    overallStatusLabel: reproductionStatusLabels[overallStatus],
+    checkpoints,
     comparison: {
-      paperDataset:
-        comparisonEvidence?.paperDataset ?? demo.map.paperDataset.value,
-      paperMetric:
-        comparisonEvidence?.paperMetric ?? demo.map.paperMetric.value,
-      paperResult:
-        comparisonEvidence?.paperResult ?? demo.map.paperResult.value,
-      localDataset:
-        comparisonEvidence?.localDataset ??
-        demo.map.minimalTarget.value.dataset,
-      localResult,
-      basis: "not_comparable",
-      explanation:
-        comparisonEvidence?.explanation ?? demo.map.benchmarkGap.value
+      paperDataset: comparisonEvidence.paperDataset,
+      localDataset: comparisonEvidence.localDataset,
+      paperMetric: comparisonEvidence.paperMetric,
+      localMetric: comparisonEvidence.localMetric,
+      paperResult: isValidLocalResult(comparisonEvidence.paperResult)
+        ? comparisonEvidence.paperResult
+        : null,
+      localResult: isValidLocalResult(comparisonEvidence.localResult)
+        ? comparisonEvidence.localResult
+        : null,
+      comparisonBasis: comparisonEvidence.comparisonBasis,
+      explanation: comparisonEvidence.explanation
     },
-    gaps: fullProtocol
-      ? project.checkpoints["record-gaps"].evidence.gaps.map(
-          (gap) => gap.description
-        )
-      : [demo.map.benchmarkGap.value],
-    missingFields,
-    status,
-    statusLabel: reproductionStatusLabels[status],
-    sources: [...sources.values()]
+    gaps,
+    learnerNotes: project.checkpoints["record-gaps"].evidence.learnerNotes,
+    missingEvidenceByCheckpoint,
+    claimBoundary: {
+      minimalMethodTarget:
+        runStatus === "verified" ? "reproduced" : "not_reproduced",
+      paperBenchmark,
+      explanation:
+        paperBenchmark === "not_attempted"
+          ? demo.map.benchmarkGapImpact.value
+          : "The available evidence does not support a paper-benchmark reproduction claim."
+    },
+    sourceReferences: uniqueSources([
+      collectDemoSources(demo),
+      projectSources,
+      gapSources
+    ])
   });
 }
 
-const displayPercent = (value: number | null) =>
-  value === null ? "Not recorded" : `${(value * 100).toFixed(1)}%`;
-
 const textOrMissing = (value: string) => value.trim() || "Not recorded";
 
-const metricLabel = (value: string) => value.replace(/\s*\(%\)\s*$/, "");
+const readableToken = (value: string) => value.replaceAll("_", " ");
 
-const sourceLabel = (source: SourceReference) =>
-  source.url.startsWith("repository-file:")
+const markdownCell = (value: string) =>
+  value.replaceAll("|", "\\|").replaceAll("\n", " ");
+
+export function formatMetricResult(
+  value: number | null,
+  metric: string
+): string {
+  if (value === null) return "Not recorded";
+  if (metric.includes("%")) return `${(value * 100).toFixed(1)}%`;
+  return Number(value.toFixed(6)).toString();
+}
+
+export function sourceLabel(source: SourceReference): string {
+  return source.url.startsWith("repository-file:")
     ? `ReproPath repository file \`${source.url.slice("repository-file:".length)}\``
     : source.url;
+}
 
-export function passportToMarkdown(passport: Passport): string {
-  const missing = passport.missingFields.length
-    ? passport.missingFields.map((field) => `- ${field}`).join("\n")
-    : "- None";
-  const sources = passport.sources
+function sourcesToMarkdown(sources: SourceReference[]): string {
+  if (sources.length === 0) return "- None recorded";
+  return sources
     .map(
       (source) =>
         `- ${source.claimId}: ${sourceLabel(source)} — ${source.locator}`
     )
     .join("\n");
+}
 
-  return `# Reproduction Passport
+export function passportToMarkdown(passport: PassportV2): string {
+  const parsed = passportV2Schema.parse(passport);
+  const environment = parsed.checkpoints.find(
+    (checkpoint) => checkpoint.checkpointId === "prepare-environment"
+  )!;
+  const run = parsed.checkpoints.find(
+    (checkpoint) => checkpoint.checkpointId === "run-minimal-target"
+  )!;
+  const checkpointRows = parsed.checkpoints
+    .map(
+      (checkpoint) =>
+        `| ${checkpoint.order} | ${markdownCell(checkpoint.title)} | ${checkpointStatusLabels[checkpoint.derivedStatus]} | ${readableToken(checkpoint.evidenceMode)} | ${evidenceProvenanceLabels[checkpoint.evidenceProvenance]} | ${checkpoint.missingRequirements.length ? markdownCell(checkpoint.missingRequirements.join("; ")) : "None"} |`
+    )
+    .join("\n");
+  const gaps = parsed.gaps.length
+    ? parsed.gaps
+        .map(
+          (gap) => `### ${gap.description}\n\n- Impact on claim: ${gap.impactOnClaim}\n- Status: ${gap.status}\n- Provenance: ${evidenceProvenanceLabels[gap.provenance]}\n- Sources:\n${sourcesToMarkdown(gap.sources)}`
+        )
+        .join("\n\n")
+    : "No gaps recorded.";
+  const missing = parsed.missingEvidenceByCheckpoint.length
+    ? parsed.missingEvidenceByCheckpoint
+        .map(
+          (group) =>
+            `### Checkpoint ${group.order}: ${group.title} (${checkpointStatusLabels[group.status]})\n\n${group.requirements.map((requirement) => `- ${requirement}`).join("\n")}`
+        )
+        .join("\n\n")
+    : "All checkpoint requirements are present.";
 
-Generated: ${passport.generatedAt}
+  return `# Reproduction Passport v2
 
-## Reproduction status
+Generated: ${parsed.generatedAt}
+Source project updated: ${parsed.sourceProjectUpdatedAt}
 
-**${passport.statusLabel}**
+## Executive status summary
 
-Paper benchmark comparison: **Not comparable**
+- Overall reproduction status: **${parsed.overallStatusLabel}** (${parsed.overallStatus})
+- Minimal method target: **${readableToken(parsed.claimBoundary.minimalMethodTarget)}**
+- Paper benchmark: **${readableToken(parsed.claimBoundary.paperBenchmark)}**
+- Claim boundary: ${parsed.claimBoundary.explanation}
 
 ## Paper and repository
 
-- Paper: ${passport.paper.title}
-- Authors: ${passport.paper.authors.join(", ")}
-- Version: ${passport.paper.version}
-- Venue: ${passport.paper.venue}
-- Repository: ${passport.repository.url}
-- Commit: ${passport.repository.commit}
-- License: ${passport.repository.license}
+- Project: ${parsed.project.id} (project schema v${parsed.project.schemaVersion})
+- Paper: ${parsed.paper.title}
+- Authors: ${parsed.paper.authors.join(", ")}
+- Version: ${parsed.paper.version}
+- Venue: ${parsed.paper.venue}
+- Repository: ${parsed.repository.url}
+- Commit: ${parsed.repository.commit}
+- License: ${parsed.repository.license}
 
-## Minimal target
+## Minimal reproduction target
 
-- Type: ${passport.target.kind}
-- Target: ${passport.target.title}
-- Dataset: ${passport.target.dataset}
-- Expected output: ${passport.target.expectedOutput}
+- Type: ${parsed.minimalTarget.kind}
+- Target: ${parsed.minimalTarget.title}
+- Dataset: ${parsed.minimalTarget.dataset}
+- Expected output: ${parsed.minimalTarget.expectedOutput}
+- Success criteria:
+${parsed.minimalTarget.successCriteria.map((criterion) => `  - ${criterion}`).join("\n")}
 
-## Environment
+## Seven-checkpoint record
 
-${textOrMissing(passport.environment)}
+| # | Checkpoint | Status | Evidence mode | Provenance | Missing requirements |
+|---:|---|---|---|---|---|
+${checkpointRows}
 
-## Commands
+## Environment setup
 
-### Training
+- Environment: ${textOrMissing(environment.evidence.environmentSummary)}
+- Repository commit: ${textOrMissing(environment.evidence.repositoryCommit)}
+- Readiness: ${environment.evidence.readiness}
 
-\`\`\`text
-${textOrMissing(passport.commands.training)}
-\`\`\`
-
-### Evaluation
-
-\`\`\`text
-${textOrMissing(passport.commands.evaluation)}
-\`\`\`
-
-## Evidence
-
-Run outcome: ${passport.evidence.runOutcome}
-
-Evidence provenance: ${evidenceProvenanceLabels[passport.evidence.provenance]} (${passport.evidence.provenance})
+### Setup command
 
 \`\`\`text
-${textOrMissing(passport.evidence.logExcerpt)}
+${textOrMissing(environment.evidence.setupCommand)}
 \`\`\`
 
-## Results and scope
+### Diagnostic output
 
-- Paper result (${passport.comparison.paperDataset}): ${displayPercent(passport.comparison.paperResult)} (${metricLabel(passport.comparison.paperMetric)})
-- Local result (${passport.comparison.localDataset}): ${displayPercent(passport.comparison.localResult)} P@1
-- Comparison basis: not_comparable
-- Reason: ${passport.comparison.explanation}
+\`\`\`text
+${textOrMissing(environment.evidence.diagnosticOutput)}
+\`\`\`
 
-## Unresolved gaps
+## Minimal-target execution
 
-${passport.gaps.map((gap) => `- ${gap}`).join("\n")}
+- Run outcome: ${run.evidence.runOutcome}
+- Evidence provenance: ${evidenceProvenanceLabels[run.evidence.provenance]}
+- Local result: ${formatMetricResult(run.evidence.localResult, parsed.comparison.localMetric)} (${parsed.comparison.localMetric || "metric not recorded"})
+- Dataset scope confirmed: ${run.evidence.resultDatasetScopeConfirmed ? "Yes" : "No"}
 
-## Missing evidence
+### Training command
+
+\`\`\`text
+${textOrMissing(run.evidence.trainingCommand)}
+\`\`\`
+
+### Evaluation command
+
+\`\`\`text
+${textOrMissing(run.evidence.evaluationCommand)}
+\`\`\`
+
+### Evaluation log
+
+\`\`\`text
+${textOrMissing(run.evidence.logExcerpt)}
+\`\`\`
+
+## Structured comparison basis
+
+| Result | Dataset | Metric | Value |
+|---|---|---|---:|
+| Paper | ${markdownCell(parsed.comparison.paperDataset)} | ${markdownCell(parsed.comparison.paperMetric)} | ${formatMetricResult(parsed.comparison.paperResult, parsed.comparison.paperMetric)} |
+| Local | ${markdownCell(parsed.comparison.localDataset)} | ${markdownCell(parsed.comparison.localMetric)} | ${formatMetricResult(parsed.comparison.localResult, parsed.comparison.localMetric)} |
+
+- Comparison basis: ${parsed.comparison.comparisonBasis ?? "Not recorded"}
+- Explanation: ${textOrMissing(parsed.comparison.explanation)}
+
+## Reproduction gaps
+
+${gaps}
+
+## Learner notes
+
+${textOrMissing(parsed.learnerNotes)}
+
+## Missing evidence by checkpoint
 
 ${missing}
 
-## Notes
+## Source references
 
-${textOrMissing(passport.evidence.notes)}
-
-## Sources
-
-${sources}
+${sourcesToMarkdown(parsed.sourceReferences)}
 `;
 }
 
-export function passportToJson(passport: Passport): string {
-  return `${JSON.stringify(passportSchema.parse(passport), null, 2)}\n`;
+export function passportToJson(passport: PassportV2): string {
+  return `${JSON.stringify(passportV2Schema.parse(passport), null, 2)}\n`;
 }
+
+export const passportSchema = passportV2Schema;
+export type Passport = PassportV2;

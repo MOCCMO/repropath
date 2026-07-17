@@ -4,19 +4,34 @@ import { AppShell } from "../../app/AppShell";
 import { paths } from "../../app/paths";
 import { StatusSummary } from "../../components/StatusSummary";
 import {
+  checkpointStatusLabels,
   evidenceProvenanceLabels,
+  formatMetricResult,
   generatePassport
 } from "../../domain/passportGenerator";
 import { useProject } from "../../state/projectContext";
 import { PassportDownloadButtons } from "./PassportDownloadButtons";
 
-const percent = (value: number | null) =>
-  value === null ? "Not recorded" : `${(value * 100).toFixed(1)}%`;
+const readableToken = (value: string) => value.replaceAll("_", " ");
 
 export function PassportPage() {
   const { demo, project } = useProject();
   if (!project) return <Navigate to="/" replace />;
   const passport = generatePassport(demo, project);
+  const environmentCheckpoint = passport.checkpoints.find(
+    (checkpoint) => checkpoint.checkpointId === "prepare-environment"
+  );
+  const runCheckpoint = passport.checkpoints.find(
+    (checkpoint) => checkpoint.checkpointId === "run-minimal-target"
+  );
+  if (
+    !environmentCheckpoint ||
+    environmentCheckpoint.checkpointId !== "prepare-environment" ||
+    !runCheckpoint ||
+    runCheckpoint.checkpointId !== "run-minimal-target"
+  ) {
+    throw new Error("Passport v2 is missing required checkpoint records.");
+  }
 
   return (
     <AppShell activeStep="passport">
@@ -25,12 +40,32 @@ export function PassportPage() {
           <div>
             <h1>Reproduction Passport</h1>
             <p>
-              A structured record of the target, evidence, result, and remaining
-              boundary.
+              A versioned record of all seven checkpoints, evidence boundaries,
+              comparison scope, and unresolved gaps.
             </p>
           </div>
           <PassportDownloadButtons passport={passport} />
         </div>
+
+        <section className="passport-executive" aria-labelledby="passport-status-heading">
+          <div>
+            <h2 id="passport-status-heading">Executive status summary</h2>
+            <p>
+              <strong>{passport.overallStatusLabel}.</strong>{" "}
+              {passport.claimBoundary.explanation}
+            </p>
+          </div>
+          <dl>
+            <div>
+              <dt>Minimal method target</dt>
+              <dd>{readableToken(passport.claimBoundary.minimalMethodTarget)}</dd>
+            </div>
+            <div>
+              <dt>Paper benchmark</dt>
+              <dd>{readableToken(passport.claimBoundary.paperBenchmark)}</dd>
+            </div>
+          </dl>
+        </section>
 
         <div className="passport-layout">
           <div className="passport-record">
@@ -42,69 +77,120 @@ export function PassportPage() {
                 <div><dt>Version</dt><dd>{passport.paper.version}</dd></div>
                 <div><dt>Repository</dt><dd><a href={passport.repository.url} target="_blank" rel="noreferrer">{passport.repository.url} <ExternalLink size={13} /></a></dd></div>
                 <div><dt>Commit</dt><dd><code>{passport.repository.commit}</code></dd></div>
-                <div><dt>License</dt><dd>{passport.repository.license}</dd></div>
+                <div><dt>Project schema</dt><dd>v{passport.project.schemaVersion}</dd></div>
+                <div><dt>Passport schema</dt><dd>v{passport.schemaVersion}</dd></div>
               </dl>
             </section>
 
             <section className="passport-section">
-              <h2><span>02</span> Environment and commands</h2>
-              <div className="environment-record">{passport.environment || "Not recorded"}</div>
-              <div className="command-records">
-                <div><h3>Training</h3><pre>{passport.commands.training || "Not recorded"}</pre></div>
-                <div><h3>Evaluation</h3><pre>{passport.commands.evaluation || "Not recorded"}</pre></div>
+              <h2><span>02</span> Seven-checkpoint record</h2>
+              <div className="passport-checkpoint-table" role="region" aria-label="Seven checkpoint export summary" tabIndex={0}>
+                <table>
+                  <thead>
+                    <tr><th>#</th><th>Checkpoint</th><th>Status</th><th>Provenance</th><th>Missing</th></tr>
+                  </thead>
+                  <tbody>
+                    {passport.checkpoints.map((checkpoint) => (
+                      <tr key={checkpoint.checkpointId}>
+                        <td>{checkpoint.order}</td>
+                        <td>{checkpoint.title}<small>{readableToken(checkpoint.evidenceMode)}</small></td>
+                        <td>{checkpointStatusLabels[checkpoint.derivedStatus]}</td>
+                        <td>{evidenceProvenanceLabels[checkpoint.evidenceProvenance]}</td>
+                        <td>{checkpoint.missingRequirements.length || "None"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </section>
 
             <section className="passport-section">
-              <h2><span>03</span> Commands and evidence</h2>
+              <h2><span>03</span> Environment setup</h2>
+              <dl className="record-list">
+                <div><dt>Environment</dt><dd>{environmentCheckpoint.evidence.environmentSummary || "Not recorded"}</dd></div>
+                <div><dt>Commit</dt><dd><code>{environmentCheckpoint.evidence.repositoryCommit || "Not recorded"}</code></dd></div>
+                <div><dt>Readiness</dt><dd>{readableToken(environmentCheckpoint.evidence.readiness)}</dd></div>
+              </dl>
+              <div className="command-records passport-command-stack">
+                <div><h3>Setup command</h3><pre>{environmentCheckpoint.evidence.setupCommand || "Not recorded"}</pre></div>
+                <div><h3>Diagnostic output</h3><pre>{environmentCheckpoint.evidence.diagnosticOutput || "Not recorded"}</pre></div>
+              </div>
+            </section>
+
+            <section className="passport-section">
+              <h2><span>04</span> Minimal-target execution</h2>
               <div className="evidence-meta">
-                <span>Outcome <strong>{passport.evidence.runOutcome.replace("_", " ")}</strong></span>
-                <span>Provenance <strong>{evidenceProvenanceLabels[passport.evidence.provenance]}</strong></span>
+                <span>Outcome <strong>{readableToken(runCheckpoint.evidence.runOutcome)}</strong></span>
+                <span>Provenance <strong>{evidenceProvenanceLabels[runCheckpoint.evidence.provenance]}</strong></span>
               </div>
-              <pre className="log-record">{passport.evidence.logExcerpt || "Not recorded"}</pre>
+              <div className="command-records">
+                <div><h3>Training command</h3><pre>{runCheckpoint.evidence.trainingCommand || "Not recorded"}</pre></div>
+                <div><h3>Evaluation command</h3><pre>{runCheckpoint.evidence.evaluationCommand || "Not recorded"}</pre></div>
+              </div>
+              <h3 className="passport-log-heading">Evaluation log</h3>
+              <pre className="log-record">{runCheckpoint.evidence.logExcerpt || "Not recorded"}</pre>
             </section>
 
             <section className="passport-section">
-              <h2><span>04</span> Result and comparison basis</h2>
+              <h2><span>05</span> Structured comparison basis</h2>
               <div className="result-table">
-                <div className="result-header"><span>Result</span><span>Dataset</span><span>Value</span></div>
-                <div><strong>Published</strong><span>AG paper benchmark</span><span>{percent(passport.comparison.paperResult)}</span></div>
-                <div><strong>Local</strong><span>{passport.comparison.localDataset}</span><span>{percent(passport.comparison.localResult)} P@1</span></div>
+                <div className="result-header"><span>Result</span><span>Dataset</span><span>Metric</span><span>Value</span></div>
+                <div><strong>Paper</strong><span>{passport.comparison.paperDataset}</span><span>{passport.comparison.paperMetric}</span><span>{formatMetricResult(passport.comparison.paperResult, passport.comparison.paperMetric)}</span></div>
+                <div><strong>Local</strong><span>{passport.comparison.localDataset}</span><span>{passport.comparison.localMetric}</span><span>{formatMetricResult(passport.comparison.localResult, passport.comparison.localMetric)}</span></div>
               </div>
               <div className="not-comparable">
                 <AlertTriangle size={18} />
-                <p><strong>Not comparable.</strong> {passport.comparison.explanation}</p>
+                <p><strong>{readableToken(passport.comparison.comparisonBasis ?? "not recorded")}.</strong> {passport.comparison.explanation || "No comparison explanation recorded."}</p>
               </div>
+            </section>
+
+            <section className="passport-section">
+              <h2><span>06</span> Structured reproduction gaps</h2>
+              <div className="passport-gaps">
+                {passport.gaps.map((gap) => (
+                  <article key={gap.id}>
+                    <div><strong>{gap.description}</strong><span>{gap.status}</span></div>
+                    <p><b>Impact on claim:</b> {gap.impactOnClaim}</p>
+                    <small>{evidenceProvenanceLabels[gap.provenance]} · {gap.sources.length} source reference{gap.sources.length === 1 ? "" : "s"}</small>
+                  </article>
+                ))}
+              </div>
+              <h3>Learner notes</h3>
+              <p>{passport.learnerNotes || "No learner notes recorded."}</p>
             </section>
           </div>
 
           <aside className="passport-summary">
             <StatusSummary
-              status={passport.status}
-              missingCount={passport.missingFields.length}
+              status={passport.overallStatus}
+              missingCount={passport.missingEvidenceByCheckpoint.length}
             />
             <section>
               <h2>Minimal target</h2>
-              <p className="summary-target">{passport.target.title}</p>
+              <p className="summary-target">{passport.minimalTarget.title}</p>
               <dl>
                 <div><dt>Target type</dt><dd>Method smoke test</dd></div>
-                <div><dt>Local dataset</dt><dd>{passport.target.dataset}</dd></div>
-                <div><dt>Comparison</dt><dd>Not comparable</dd></div>
+                <div><dt>Local dataset</dt><dd>{passport.minimalTarget.dataset}</dd></div>
+                <div><dt>Comparison</dt><dd>{readableToken(passport.comparison.comparisonBasis ?? "not recorded")}</dd></div>
               </dl>
             </section>
             <section>
-              <h2>Unresolved gaps</h2>
-              {passport.gaps.map((gap) => <p className="gap-entry" key={gap}>{gap}</p>)}
-            </section>
-            <section>
               <h2>Missing evidence</h2>
-              {passport.missingFields.length ? (
-                <ul>{passport.missingFields.map((field) => <li key={field}>{field}</li>)}</ul>
-              ) : <p className="all-present">All method-level evidence is present.</p>}
+              {passport.missingEvidenceByCheckpoint.length ? (
+                <div className="missing-groups">
+                  {passport.missingEvidenceByCheckpoint.map((group) => (
+                    <div key={group.checkpointId}>
+                      <strong>Checkpoint {group.order}: {group.title}</strong>
+                      <span>{checkpointStatusLabels[group.status]}</span>
+                      <ul>{group.requirements.map((requirement) => <li key={requirement}>{requirement}</li>)}</ul>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="all-present">All checkpoint requirements are present.</p>}
             </section>
             <section>
               <h2>Source coverage</h2>
-              <p>{passport.sources.length} source locators travel with the JSON export.</p>
+              <p>{passport.sourceReferences.length} source locators travel with both exports.</p>
             </section>
           </aside>
         </div>
