@@ -30,6 +30,25 @@ export function ProjectProvider({ children }: PropsWithChildren) {
         dispatch({
           type: "update_evidence",
           patch,
+          demo,
+          now: new Date().toISOString()
+        }),
+      updateLearnerNotes: (notes) =>
+        dispatch({
+          type: "update_learner_notes",
+          notes,
+          now: new Date().toISOString()
+        }),
+      addLearnerGap: (gap) =>
+        dispatch({
+          type: "add_learner_gap",
+          gap,
+          now: new Date().toISOString()
+        }),
+      removeLearnerGap: (gapId) =>
+        dispatch({
+          type: "remove_learner_gap",
+          gapId,
           now: new Date().toISOString()
         })
     }),

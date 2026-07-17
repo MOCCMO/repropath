@@ -16,9 +16,10 @@ export function CheckpointWorkspacePage() {
   const { demo, project, updateEvidence } = useProject();
   if (!project) return <Navigate to="/" replace />;
 
-  const checkpointStatus = deriveCheckpointStatus(project.evidence);
-  const reproductionStatus = deriveReproductionStatus(project.evidence);
-  const missing = getMissingEvidenceFields(project.evidence);
+  const runEvidence = project.checkpoints["run-minimal-target"].evidence;
+  const checkpointStatus = deriveCheckpointStatus(runEvidence);
+  const reproductionStatus = deriveReproductionStatus(runEvidence);
+  const missing = getMissingEvidenceFields(runEvidence);
 
   return (
     <AppShell activeStep="checkpoint">
@@ -75,7 +76,7 @@ export function CheckpointWorkspacePage() {
                 {checkpointStatus.replace("_", " ")}
               </span>
             </div>
-            <CheckpointEvidenceForm evidence={project.evidence} onChange={updateEvidence} />
+            <CheckpointEvidenceForm evidence={runEvidence} onChange={updateEvidence} />
           </section>
         </section>
 

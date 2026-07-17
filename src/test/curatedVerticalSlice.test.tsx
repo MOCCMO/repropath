@@ -34,7 +34,9 @@ describe("curated first vertical slice", () => {
     expect(
       screen.getByRole("heading", { name: /reproduction passport/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("Environment summary")).toBeInTheDocument();
+    expect(
+      screen.getByText("Checkpoint 5: Run the minimal target (in progress)")
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/not comparable/i).length).toBeGreaterThan(0);
     expect(
       screen.getByText("Verified seed modified by learner")
@@ -78,6 +80,8 @@ describe("curated first vertical slice", () => {
     expect(
       screen.getByRole("heading", { name: /record the minimal fastText run/i })
     ).toBeInTheDocument();
-    expect(loadProject()?.evidence.localResult).not.toBe(2);
+    expect(
+      loadProject()?.checkpoints["run-minimal-target"].evidence.localResult
+    ).not.toBe(2);
   });
 });

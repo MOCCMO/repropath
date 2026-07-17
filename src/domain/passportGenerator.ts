@@ -8,6 +8,14 @@ import {
   deriveReproductionStatus,
   reproductionStatusLabels
 } from "./reproductionStatus";
+import {
+  checkpointDefinitions
+} from "./checkpointDefinitions";
+import {
+  deriveCheckpointStatuses,
+  deriveProjectReproductionStatus
+} from "./fullProtocolRules";
+import type { FullProtocolProject } from "./fullProtocolSchemas";
 import type {
   CuratedDemo,
   Project,
@@ -94,10 +102,14 @@ function collectSources(demo: CuratedDemo): SourceReference[] {
     demo.map.repositoryComponents.sources,
     demo.map.minimalTarget.sources,
     demo.map.benchmarkGap.sources,
+    demo.map.benchmarkGapImpact.sources,
+    demo.observedSetup.setupCommand.sources,
+    demo.observedSetup.diagnosticOutput.sources,
     demo.observedRun.environment.sources,
     demo.observedRun.trainingCommand.sources,
     demo.observedRun.evaluationCommand.sources,
     demo.observedRun.logExcerpt.sources,
+    demo.observedRun.localMetric.sources,
     demo.observedRun.localResult.sources
   ];
 
@@ -108,15 +120,54 @@ function collectSources(demo: CuratedDemo): SourceReference[] {
   return [...unique.values()];
 }
 
+const isFullProtocolProject = (
+  project: Project | FullProtocolProject
+): project is FullProtocolProject => project.schemaVersion === 2;
+
+const statusText = (status: string) => status.replaceAll("_", " ");
+
 export function generatePassport(
   demo: CuratedDemo,
-  project: Project,
+  project: Project | FullProtocolProject,
   generatedAt = new Date().toISOString()
 ): Passport {
-  const status = deriveReproductionStatus(project.evidence);
-  const localResult = isValidLocalResult(project.evidence.localResult)
-    ? project.evidence.localResult
+  const fullProtocol = isFullProtocolProject(project);
+  const runEvidence = fullProtocol
+    ? project.checkpoints["run-minimal-target"].evidence
+    : project.evidence;
+  const comparisonEvidence = fullProtocol
+    ? project.checkpoints["compare-results"].evidence
     : null;
+  const checkpointStatuses = fullProtocol
+    ? deriveCheckpointStatuses(project)
+    : null;
+  const status = fullProtocol
+    ? deriveProjectReproductionStatus(project, checkpointStatuses!)
+    : deriveReproductionStatus(runEvidence);
+  const localResult = isValidLocalResult(runEvidence.localResult)
+    ? runEvidence.localResult
+    : null;
+  const missingFields = fullProtocol
+    ? checkpointDefinitions
+        .filter(
+          ({ id }) => checkpointStatuses?.[id] !== "verified"
+        )
+        .map(
+          ({ id, order, title }) =>
+            `Checkpoint ${order}: ${title} (${statusText(checkpointStatuses![id])})`
+        )
+    : getMissingEvidenceFields(runEvidence).map(
+        (field) => evidenceFieldLabels[field]
+      );
+  const projectSources = fullProtocol
+    ? Object.values(project.checkpoints).flatMap(
+        (checkpoint) => checkpoint.sources
+      )
+    : [];
+  const sources = new Map<string, SourceReference>();
+  [...collectSources(demo), ...projectSources].forEach((source) => {
+    sources.set(`${source.claimId}:${source.url}:${source.locator}`, source);
+  });
   return passportSchema.parse({
     schemaVersion: 1,
     generatedAt,
@@ -134,34 +185,42 @@ export function generatePassport(
       license: demo.repository.license.value
     },
     target: demo.map.minimalTarget.value,
-    environment: project.evidence.environment,
+    environment: runEvidence.environment,
     commands: {
-      training: project.evidence.trainingCommand,
-      evaluation: project.evidence.evaluationCommand
+      training: runEvidence.trainingCommand,
+      evaluation: runEvidence.evaluationCommand
     },
     evidence: {
-      logExcerpt: project.evidence.logExcerpt,
+      logExcerpt: runEvidence.logExcerpt,
       localResult,
-      runOutcome: project.evidence.runOutcome,
-      provenance: project.evidence.provenance,
-      notes: project.evidence.notes
+      runOutcome: runEvidence.runOutcome,
+      provenance: runEvidence.provenance,
+      notes: runEvidence.notes
     },
     comparison: {
-      paperDataset: demo.map.paperDataset.value,
-      paperMetric: demo.map.paperMetric.value,
-      paperResult: demo.map.paperResult.value,
-      localDataset: demo.map.minimalTarget.value.dataset,
+      paperDataset:
+        comparisonEvidence?.paperDataset ?? demo.map.paperDataset.value,
+      paperMetric:
+        comparisonEvidence?.paperMetric ?? demo.map.paperMetric.value,
+      paperResult:
+        comparisonEvidence?.paperResult ?? demo.map.paperResult.value,
+      localDataset:
+        comparisonEvidence?.localDataset ??
+        demo.map.minimalTarget.value.dataset,
       localResult,
       basis: "not_comparable",
-      explanation: demo.map.benchmarkGap.value
+      explanation:
+        comparisonEvidence?.explanation ?? demo.map.benchmarkGap.value
     },
-    gaps: [demo.map.benchmarkGap.value],
-    missingFields: getMissingEvidenceFields(project.evidence).map(
-      (field) => evidenceFieldLabels[field]
-    ),
+    gaps: fullProtocol
+      ? project.checkpoints["record-gaps"].evidence.gaps.map(
+          (gap) => gap.description
+        )
+      : [demo.map.benchmarkGap.value],
+    missingFields,
     status,
     statusLabel: reproductionStatusLabels[status],
-    sources: collectSources(demo)
+    sources: [...sources.values()]
   });
 }
 

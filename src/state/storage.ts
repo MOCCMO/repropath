@@ -1,23 +1,29 @@
-import { projectSchema, type Project } from "../domain/schemas";
+import fastTextDemoJson from "../data/fasttext-demo.json";
+import { fullProtocolProjectSchema, type FullProtocolProject } from "../domain/fullProtocolSchemas";
+import { hydrateProjectV1ToV2 } from "../domain/projectHydration";
+import { curatedDemoSchema } from "../domain/schemas";
 
 export const STORAGE_KEY = "repropath:v1:projects";
+const demo = curatedDemoSchema.parse(fastTextDemoJson);
 
-export function loadProject(storage: Storage = localStorage): Project | null {
+export function loadProject(
+  storage: Storage = localStorage
+): FullProtocolProject | null {
   const stored = storage.getItem(STORAGE_KEY);
   if (!stored) return null;
 
   try {
-    return projectSchema.parse(JSON.parse(stored));
+    return hydrateProjectV1ToV2(JSON.parse(stored), demo);
   } catch {
     return null;
   }
 }
 
 export function saveProject(
-  project: Project,
+  project: FullProtocolProject,
   storage: Storage = localStorage
 ): boolean {
-  const parsed = projectSchema.safeParse(project);
+  const parsed = fullProtocolProjectSchema.safeParse(project);
   if (!parsed.success) return false;
 
   try {
