@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { Link } from "react-router-dom";
-import { GitBranch } from "lucide-react";
+import { AlertTriangle, GitBranch, RotateCcw } from "lucide-react";
 import { StepProgress, type WorkflowStep } from "../components/StepProgress";
 import { useProject } from "../state/projectContext";
 
@@ -9,7 +9,19 @@ type AppShellProps = PropsWithChildren<{
 }>;
 
 export function AppShell({ activeStep, children }: AppShellProps) {
-  const { project } = useProject();
+  const {
+    project,
+    persistenceError,
+    resetCuratedProject,
+    statusNotice
+  } = useProject();
+
+  const confirmReset = () => {
+    const confirmed = window.confirm(
+      "Reset the curated demo? This replaces ReproPath project evidence with the reviewed seed and removes learner notes and learner-created gaps. Other browser storage is not affected."
+    );
+    if (confirmed) resetCuratedProject();
+  };
 
   return (
     <div className="app-shell">
@@ -21,8 +33,28 @@ export function AppShell({ activeStep, children }: AppShellProps) {
           <span>ReproPath</span>
         </Link>
         <StepProgress activeStep={activeStep} projectReady={Boolean(project)} />
-        <div className="topbar-spacer" aria-hidden="true" />
+        <div className="topbar-actions">
+          {project && (
+            <button
+              className="reset-demo-button"
+              type="button"
+              onClick={confirmReset}
+            >
+              <RotateCcw size={16} aria-hidden="true" /> Reset curated demo
+            </button>
+          )}
+        </div>
       </header>
+      {persistenceError && (
+        <div className="workspace-message workspace-error" role="alert">
+          <AlertTriangle size={17} aria-hidden="true" /> {persistenceError}
+        </div>
+      )}
+      {statusNotice && (
+        <div className="workspace-message workspace-notice" role="status">
+          {statusNotice}
+        </div>
+      )}
       {children}
     </div>
   );

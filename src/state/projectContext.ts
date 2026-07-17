@@ -5,7 +5,10 @@ import type { CuratedDemo, RunEvidence } from "../domain/schemas";
 export type ProjectContextValue = {
   demo: CuratedDemo;
   project: FullProtocolProject | null;
+  persistenceError: string | null;
+  statusNotice: string | null;
   openCuratedProject: () => void;
+  resetCuratedProject: () => void;
   updateEvidence: (patch: Partial<RunEvidence>) => void;
   updateLearnerNotes: (notes: string) => void;
   addLearnerGap: (gap: ReproductionGap) => void;

@@ -14,6 +14,7 @@ export type ProjectState = {
 
 export type ProjectAction =
   | { type: "open_curated"; demo: CuratedDemo; now: string }
+  | { type: "reset_curated"; demo: CuratedDemo; now: string }
   | {
       type: "update_evidence";
       patch: Partial<RunEvidence>;
@@ -76,6 +77,10 @@ export function projectReducer(
               action.now
             )
           };
+    case "reset_curated":
+      return {
+        project: createFullProtocolProjectFromDemo(action.demo, action.now)
+      };
     case "update_evidence": {
       if (!state.project) return state;
       const runCheckpoint = state.project.checkpoints["run-minimal-target"];
