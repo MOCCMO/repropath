@@ -68,13 +68,19 @@ export const curatedDemoSchema = z.object({
       z.array(repositoryComponentSchema).min(1)
     ),
     minimalTarget: sourcedValueSchema(minimalTargetValueSchema),
-    benchmarkGap: sourcedValueSchema(z.string().min(1))
+    benchmarkGap: sourcedValueSchema(z.string().min(1)),
+    benchmarkGapImpact: sourcedValueSchema(z.string().min(1))
+  }),
+  observedSetup: z.object({
+    setupCommand: sourcedValueSchema(z.string().min(1)),
+    diagnosticOutput: sourcedValueSchema(z.string().min(1))
   }),
   observedRun: z.object({
     environment: sourcedValueSchema(z.string().min(1)),
     trainingCommand: sourcedValueSchema(z.string().min(1)),
     evaluationCommand: sourcedValueSchema(z.string().min(1)),
     logExcerpt: sourcedValueSchema(z.string().min(1)),
+    localMetric: sourcedValueSchema(z.string().min(1)),
     localResult: sourcedValueSchema(z.number().min(0).max(1))
   })
 });

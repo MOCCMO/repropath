@@ -63,6 +63,7 @@ function deriveDataAndMetricStatus(
     hasText(evidence.paperDataset) ||
     hasText(evidence.localDataset) ||
     hasText(evidence.paperMetric) ||
+    hasText(evidence.localMetric) ||
     evidence.datasetScopeConfirmed ||
     evidence.comparisonBasis !== null ||
     hasText(evidence.scopeExplanation);
@@ -70,6 +71,7 @@ function deriveDataAndMetricStatus(
     hasText(evidence.paperDataset) &&
     hasText(evidence.localDataset) &&
     hasText(evidence.paperMetric) &&
+    hasText(evidence.localMetric) &&
     evidence.datasetScopeConfirmed &&
     evidence.comparisonBasis !== null &&
     hasText(evidence.scopeExplanation)
@@ -88,14 +90,16 @@ function derivePrepareEnvironmentStatus(
     evidence.readiness === "ready" &&
     hasText(evidence.environmentSummary) &&
     hasText(evidence.repositoryCommit) &&
-    hasText(evidence.readinessEvidence)
+    hasText(evidence.setupCommand) &&
+    hasText(evidence.diagnosticOutput)
   ) {
     return "verified";
   }
   const hasAny =
     hasText(evidence.environmentSummary) ||
     hasText(evidence.repositoryCommit) ||
-    hasText(evidence.readinessEvidence) ||
+    hasText(evidence.setupCommand) ||
+    hasText(evidence.diagnosticOutput) ||
     evidence.readiness !== "not_recorded";
   return hasAny ? "in_progress" : "not_started";
 }
@@ -134,7 +138,9 @@ function deriveRecordGapsStatus(
   const evidence = project.checkpoints["record-gaps"].evidence;
   if (
     evidence.gaps.length > 0 &&
-    evidence.gaps.every((gap) => hasText(gap.description))
+    evidence.gaps.every(
+      (gap) => hasText(gap.description) && hasText(gap.impactOnClaim)
+    )
   ) {
     return "verified";
   }
@@ -231,10 +237,12 @@ function hasAnyProtocolEvidence(project: FullProtocolProject): boolean {
       data.paperDataset,
       data.localDataset,
       data.paperMetric,
+      data.localMetric,
       data.scopeExplanation,
       environment.environmentSummary,
       environment.repositoryCommit,
-      environment.readinessEvidence,
+      environment.setupCommand,
+      environment.diagnosticOutput,
       comparison.paperDataset,
       comparison.localDataset,
       comparison.paperMetric,

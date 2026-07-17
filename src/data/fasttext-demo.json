@@ -209,6 +209,49 @@
           "claimId": "paper.ag-result"
         }
       ]
+    },
+    "benchmarkGapImpact": {
+      "value": "This gap prevents claiming reproduction of the paper benchmark while leaving the method-level smoke-test claim valid.",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Important scope boundary and claim impact",
+          "claimId": "demo.gap.claim-impact"
+        },
+        {
+          "url": "https://aclanthology.org/E17-2068.pdf",
+          "locator": "Table 1, page 429",
+          "claimId": "paper.ag-result"
+        }
+      ]
+    }
+  },
+  "observedSetup": {
+    "setupCommand": {
+      "value": "git checkout 1142dc4c4ecbc19cc16eee5cdd28472e689267e6 && make",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed checkout and build validation; command paths normalized",
+          "claimId": "demo.setup.command"
+        }
+      ]
+    },
+    "diagnosticOutput": {
+      "value": "Checkout resolved to 1142dc4. make completed successfully (exit 0) and linked the ./fasttext binary; compiler warnings were non-fatal.",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed checkout and build validation; diagnostic outcome",
+          "claimId": "demo.setup.diagnostic"
+        }
+      ]
     }
   },
   "observedRun": {
@@ -257,6 +300,18 @@
           "url": "repository-file:public/demo/README.md",
           "locator": "Observed validation output, reproduced twice",
           "claimId": "demo.run.output"
+        }
+      ]
+    },
+    "localMetric": {
+      "value": "P@1",
+      "provenance": "verified_demo_run",
+      "verification": "run_observed",
+      "sources": [
+        {
+          "url": "repository-file:public/demo/README.md",
+          "locator": "Observed validation output; local metric label",
+          "claimId": "demo.run.metric"
         }
       ]
     },

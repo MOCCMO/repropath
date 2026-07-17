@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import sourceRegister from "../../docs/DEMO_SOURCE_REGISTER.md?raw";
 import frozenProjectV1Json from "./fixtures/project-v1-frozen.json";
 import {
   CURATED_BENCHMARK_GAP_ID,
+  deriveComparisonEvidence,
   hydrateProjectV1ToV2
 } from "../domain/projectHydration";
 import { projectSchema } from "../domain/schemas";
@@ -85,7 +87,9 @@ describe("v1-to-v2 project hydration", () => {
     expect(comparison.paperMetric).toBe(
       demoFixture.map.paperMetric.value
     );
-    expect(comparison.localMetric).toBe("P@1");
+    expect(comparison.localMetric).toBe(
+      demoFixture.observedRun.localMetric.value
+    );
     expect(comparison.comparisonBasis).toBe("not_comparable");
   });
 
@@ -100,7 +104,8 @@ describe("v1-to-v2 project hydration", () => {
       id: CURATED_BENCHMARK_GAP_ID,
       status: "unresolved",
       provenance: "verified_demo_run",
-      description: demoFixture.map.benchmarkGap.value
+      description: demoFixture.map.benchmarkGap.value,
+      impactOnClaim: demoFixture.map.benchmarkGapImpact.value
     });
     expect(gap.sources.length).toBeGreaterThan(0);
   });
@@ -119,25 +124,54 @@ describe("v1-to-v2 project hydration", () => {
     ).toHaveLength(1);
   });
 
-  it("preserves modified run provenance and marks the mixed comparison honestly", () => {
-    const modifiedV1 = {
-      ...frozenProjectV1Json,
-      evidence: {
-        ...frozenProjectV1Json.evidence,
-        localResult: 0.75,
-        provenance: "verified_seed_modified_by_learner" as const
-      }
-    };
-    const hydrated = hydrateProjectV1ToV2(modifiedV1, demoFixture);
+  it("does not use evaluation P@1 output as environment-readiness evidence", () => {
+    const hydrated = hydrateProjectV1ToV2(
+      frozenProjectV1Json,
+      demoFixture
+    );
+    const environment = hydrated.checkpoints["prepare-environment"];
 
-    expect(
-      hydrated.checkpoints["run-minimal-target"].evidence.provenance
-    ).toBe("verified_seed_modified_by_learner");
-    expect(hydrated.checkpoints["run-minimal-target"].evidence.localResult).toBe(
-      0.75
+    expect(environment.evidence.diagnosticOutput).not.toContain("P@1");
+    expect(environment.evidence.diagnosticOutput).not.toContain("R@1");
+    expect(environment.evidence.diagnosticOutput).not.toContain("N\t8");
+    expect(environment.sources.map(({ claimId }) => claimId)).not.toContain(
+      "demo.run.output"
     );
-    expect(hydrated.checkpoints["compare-results"].evidence.provenance).toBe(
-      "verified_seed_modified_by_learner"
+    expect(environment.sources.map(({ claimId }) => claimId)).toEqual(
+      expect.arrayContaining([
+        "demo.setup.command",
+        "demo.setup.diagnostic"
+      ])
     );
+  });
+
+  it.each([
+    "verified_demo_run",
+    "verified_seed_modified_by_learner",
+    "learner_entered"
+  ] as const)("preserves %s provenance in derived comparison evidence", (provenance) => {
+    const v1Project = projectSchema.parse(frozenProjectV1Json);
+    const comparison = deriveComparisonEvidence(demoFixture, {
+      ...v1Project.evidence,
+      provenance
+    });
+
+    expect(comparison.provenance).toBe(provenance);
+  });
+
+  it("resolves every newly curated field to a registered source locator", () => {
+    const newCuratedSources = [
+      ...demoFixture.observedSetup.setupCommand.sources,
+      ...demoFixture.observedSetup.diagnosticOutput.sources,
+      ...demoFixture.observedRun.localMetric.sources,
+      ...demoFixture.map.benchmarkGapImpact.sources.filter(
+        ({ claimId }) => claimId === "demo.gap.claim-impact"
+      )
+    ];
+
+    newCuratedSources.forEach((source) => {
+      expect(sourceRegister).toContain(`| \`${source.claimId}\``);
+      expect(sourceRegister).toContain(source.locator);
+    });
   });
 });

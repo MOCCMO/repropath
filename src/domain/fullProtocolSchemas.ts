@@ -43,6 +43,7 @@ export const confirmDataAndMetricEvidenceSchema = z.object({
   paperDataset: draftTextSchema(2000),
   localDataset: draftTextSchema(2000),
   paperMetric: draftTextSchema(1000),
+  localMetric: draftTextSchema(1000),
   datasetScopeConfirmed: z.boolean(),
   comparisonBasis: comparisonBasisSchema.nullable(),
   scopeExplanation: draftTextSchema(4000),
@@ -58,7 +59,8 @@ export const environmentReadinessSchema = z.enum([
 export const prepareEnvironmentEvidenceSchema = z.object({
   environmentSummary: draftTextSchema(2000),
   repositoryCommit: draftCommitSchema,
-  readinessEvidence: draftTextSchema(10000),
+  setupCommand: draftTextSchema(4000),
+  diagnosticOutput: draftTextSchema(10000),
   readiness: environmentReadinessSchema,
   provenance: evidenceProvenanceSchema
 });
@@ -80,6 +82,7 @@ export const gapStatusSchema = z.enum(["unresolved", "resolved"]);
 export const reproductionGapSchema = z.object({
   id: z.string().min(1).max(200),
   description: draftTextSchema(4000),
+  impactOnClaim: draftTextSchema(4000),
   status: gapStatusSchema,
   provenance: evidenceProvenanceSchema,
   sources: z.array(sourceReferenceSchema)

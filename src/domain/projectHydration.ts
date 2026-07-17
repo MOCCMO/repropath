@@ -1,4 +1,4 @@
-import type { CuratedDemo, EvidenceProvenance, RunEvidence, SourceReference } from "./schemas";
+import type { CuratedDemo, RunEvidence, SourceReference } from "./schemas";
 import { projectSchema } from "./schemas";
 import {
   fullProtocolProjectSchema,
@@ -20,14 +20,6 @@ function uniqueSources(...sourceLists: SourceReference[][]): SourceReference[] {
   return [...sources.values()];
 }
 
-function derivedComparisonProvenance(
-  runProvenance: EvidenceProvenance
-): EvidenceProvenance {
-  return runProvenance === "verified_demo_run"
-    ? "verified_demo_run"
-    : "verified_seed_modified_by_learner";
-}
-
 export function deriveComparisonEvidence(
   demo: CuratedDemo,
   runEvidence: RunEvidence
@@ -36,12 +28,12 @@ export function deriveComparisonEvidence(
     paperDataset: demo.map.paperDataset.value,
     localDataset: demo.map.minimalTarget.value.dataset,
     paperMetric: demo.map.paperMetric.value,
-    localMetric: "P@1",
+    localMetric: demo.observedRun.localMetric.value,
     paperResult: demo.map.paperResult.value,
     localResult: runEvidence.localResult,
     comparisonBasis: "not_comparable",
     explanation: demo.map.benchmarkGap.value,
-    provenance: derivedComparisonProvenance(runEvidence.provenance)
+    provenance: runEvidence.provenance
   };
 }
 
@@ -58,6 +50,7 @@ function migrateV1Project(
     demo.observedRun.trainingCommand.sources,
     demo.observedRun.evaluationCommand.sources,
     demo.observedRun.logExcerpt.sources,
+    demo.observedRun.localMetric.sources,
     demo.observedRun.localResult.sources
   );
 
@@ -99,6 +92,7 @@ function migrateV1Project(
           paperDataset: demo.map.paperDataset.value,
           localDataset: demo.map.minimalTarget.value.dataset,
           paperMetric: demo.map.paperMetric.value,
+          localMetric: demo.observedRun.localMetric.value,
           datasetScopeConfirmed: true,
           comparisonBasis: "not_comparable",
           scopeExplanation: demo.map.benchmarkGap.value,
@@ -107,6 +101,7 @@ function migrateV1Project(
         sources: uniqueSources(
           demo.map.paperDataset.sources,
           demo.map.paperMetric.sources,
+          demo.observedRun.localMetric.sources,
           demo.map.minimalTarget.sources,
           demo.map.benchmarkGap.sources
         )
@@ -115,14 +110,16 @@ function migrateV1Project(
         evidence: {
           environmentSummary: demo.observedRun.environment.value,
           repositoryCommit: demo.repository.commit.value,
-          readinessEvidence: demo.observedRun.logExcerpt.value,
+          setupCommand: demo.observedSetup.setupCommand.value,
+          diagnosticOutput: demo.observedSetup.diagnosticOutput.value,
           readiness: "ready",
           provenance: "verified_demo_run"
         },
         sources: uniqueSources(
           demo.observedRun.environment.sources,
           demo.repository.commit.sources,
-          demo.observedRun.logExcerpt.sources
+          demo.observedSetup.setupCommand.sources,
+          demo.observedSetup.diagnosticOutput.sources
         )
       },
       "run-minimal-target": {
@@ -134,6 +131,7 @@ function migrateV1Project(
         sources: uniqueSources(
           demo.map.paperDataset.sources,
           demo.map.paperMetric.sources,
+          demo.observedRun.localMetric.sources,
           demo.map.paperResult.sources,
           demo.map.minimalTarget.sources,
           demo.map.benchmarkGap.sources,
@@ -146,15 +144,22 @@ function migrateV1Project(
             {
               id: CURATED_BENCHMARK_GAP_ID,
               description: demo.map.benchmarkGap.value,
+              impactOnClaim: demo.map.benchmarkGapImpact.value,
               status: "unresolved",
               provenance: "verified_demo_run",
-              sources: benchmarkGapSources
+              sources: uniqueSources(
+                benchmarkGapSources,
+                demo.map.benchmarkGapImpact.sources
+              )
             }
           ],
           learnerNotes: "",
           provenance: "verified_demo_run"
         },
-        sources: benchmarkGapSources
+        sources: uniqueSources(
+          benchmarkGapSources,
+          demo.map.benchmarkGapImpact.sources
+        )
       }
     }
   });

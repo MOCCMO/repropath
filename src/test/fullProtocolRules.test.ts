@@ -92,6 +92,53 @@ describe("full protocol status rules", () => {
     );
   });
 
+  it("keeps checkpoint 3 incomplete without localMetric", () => {
+    const project = hydratedProject();
+    project.checkpoints["confirm-data-and-metric"].evidence.localMetric = "";
+
+    expect(
+      deriveIntrinsicCheckpointStatus("confirm-data-and-metric", project)
+    ).toBe("in_progress");
+  });
+
+  it("verifies checkpoint 3 with both paperMetric and localMetric", () => {
+    const project = hydratedProject();
+    const evidence = project.checkpoints["confirm-data-and-metric"].evidence;
+    evidence.paperMetric = "Test accuracy (%)";
+    evidence.localMetric = "P@1";
+
+    expect(
+      deriveIntrinsicCheckpointStatus("confirm-data-and-metric", project)
+    ).toBe("verified");
+  });
+
+  it("keeps checkpoint 4 incomplete without setupCommand", () => {
+    const project = hydratedProject();
+    project.checkpoints["prepare-environment"].evidence.setupCommand = "";
+
+    expect(
+      deriveIntrinsicCheckpointStatus("prepare-environment", project)
+    ).toBe("in_progress");
+  });
+
+  it("keeps checkpoint 4 incomplete without diagnosticOutput", () => {
+    const project = hydratedProject();
+    project.checkpoints["prepare-environment"].evidence.diagnosticOutput = "";
+
+    expect(
+      deriveIntrinsicCheckpointStatus("prepare-environment", project)
+    ).toBe("in_progress");
+  });
+
+  it("keeps checkpoint 7 incomplete without impactOnClaim", () => {
+    const project = hydratedProject();
+    project.checkpoints["record-gaps"].evidence.gaps[0].impactOnClaim = "";
+
+    expect(
+      deriveIntrinsicCheckpointStatus("record-gaps", project)
+    ).toBe("in_progress");
+  });
+
   it("derives not_started and insufficient_evidence for an empty protocol", () => {
     const project = hydratedProject();
     project.checkpoints["understand-task"].evidence = {
@@ -112,6 +159,7 @@ describe("full protocol status rules", () => {
       paperDataset: "",
       localDataset: "",
       paperMetric: "",
+      localMetric: "",
       datasetScopeConfirmed: false,
       comparisonBasis: null,
       scopeExplanation: ""
@@ -120,7 +168,8 @@ describe("full protocol status rules", () => {
       ...project.checkpoints["prepare-environment"].evidence,
       environmentSummary: "",
       repositoryCommit: "",
-      readinessEvidence: "",
+      setupCommand: "",
+      diagnosticOutput: "",
       readiness: "not_recorded"
     };
     project.checkpoints["run-minimal-target"].evidence = {
