@@ -4,6 +4,8 @@
 
 Open the curated project and choose **Reset curated demo**. Confirm the reset so the reviewed schema-version-2 seed, `0.875` local result, verified-demo provenance, curated AG News gap, and empty learner notes are restored.
 
+Use the full-protocol Preview at <https://repropath-full-protocol-preview.vercel.app>. The public production URL remains the frozen first-slice baseline until the Draft PR is approved and explicitly promoted.
+
 ## 0:00–0:30 — Start with a bounded case
 
 From Intake, open the curated fastText project. Explain that ReproPath uses a fixed reproduction protocol, sourced facts, and browser-only persistence; it requires no account, API key, or paid runtime.
@@ -19,6 +21,8 @@ Open checkpoints 1–4 from the seven-item rail. Point out their read-only evide
 ## 1:25–2:00 — Demonstrate evidence gating
 
 Open checkpoint 5, **Run the minimal target**; the page should say **5 of 7**. Remove the evaluation command or local result. Show that checkpoint 5 becomes incomplete, checkpoint 6 becomes locked, and Continue is unavailable. Restore the seeded value and show checkpoint 5 return to verified with **Verified seed modified by learner** provenance.
+
+Clarify that local `P@1` is a proportion: `0.875` means 87.5%, not 0.875%.
 
 ## 2:00–2:25 — Show derived comparison and honest gaps
 

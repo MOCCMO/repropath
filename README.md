@@ -2,6 +2,10 @@
 
 ReproPath is an Education-track web application for first-time NLP learners. It turns a paper-to-code reproduction attempt into a fixed, evidence-gated protocol and an exportable Reproduction Passport.
 
+- **Public production baseline:** [repropath.vercel.app](https://repropath.vercel.app) — frozen first vertical slice at commit `9553013d4b5042131a9be08a8c110da42f74ed62`; Vercel status `Ready`; intentionally unchanged while Draft PR #1 is reviewed.
+- **Full-protocol Preview:** [repropath-full-protocol-preview.vercel.app](https://repropath-full-protocol-preview.vercel.app) — feature-branch Preview only; it is not the production alias.
+- **Draft PR:** [#1 — complete ReproPath seven-checkpoint protocol workspace](https://github.com/MOCCMO/repropath/pull/1)
+
 The current curated workflow guides a learner through seven ordered checkpoints:
 
 1. Understand the task
@@ -48,6 +52,8 @@ npm run test -- --run
 npm run build
 ```
 
+The final pre-merge local run passes **11 test files and 78 tests**. GitHub Actions repeats the same commands with Node.js 22 and npm caching on every pull request and every push to `main`; superseded runs are cancelled. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
 To inspect the production build locally:
 
 ```bash
@@ -62,6 +68,7 @@ The demo is based on *Bag of Tricks for Efficient Text Classification* by Armand
 - [Protocol and status rules](docs/REPRODUCTION_PROTOCOL.md)
 - [Implementation boundaries](docs/IMPLEMENTATION_PLAN.md)
 - [Three-minute demo](docs/DEMO_SCRIPT.md)
+- [Build Week release evidence](docs/BUILD_WEEK_EVIDENCE.md)
 
 No copyrighted paper file, paper benchmark dataset, generated mockup asset, secret, or credential is included.
 
@@ -75,9 +82,24 @@ Use **Reset curated demo** before a rehearsal. After confirmation it replaces on
 
 Passport exports include generation and project timestamps, project/paper/repository metadata, the minimal target, deterministic project status, seven ordered checkpoint records, structured comparison data, structured gaps, learner notes, grouped missing evidence, source references, and the explicit claim boundary. Markdown and JSON are rendered from the same validated Passport object.
 
+When the local metric is `P@1`, ReproPath stores and displays it as a proportion: `0.875` means 87.5%, not 0.875%. The paper result retains its own stored metric and unit, and the Passport does not calculate a misleading delta across non-comparable datasets or metrics.
+
 ## Deployment
 
 The application builds to `dist/` and includes a Vercel SPA rewrite so direct checkpoint-route refreshes resolve correctly. Import the repository into Vercel with `npm run build` as the build command and `dist` as the output directory. No environment variables or API keys are required.
+
+The public production deployment remains the frozen first-slice baseline. Full-protocol work is published only to the feature Preview until Draft PR #1 is approved, marked ready, merged, and explicitly promoted in a later stage. The repository CI workflow does not contain Vercel credentials or deployment steps.
+
+## How Codex contributed
+
+Codex was used as the primary Build Week implementation workspace while human review controlled every stage boundary:
+
+- **Planning:** translated the Education-track concept into a fixed seven-checkpoint protocol, explicit P0/P1/P2 scope, acceptance criteria, and a smallest vertical slice.
+- **Implementation:** scaffolded the Vite/React application, encoded sourced curated facts, deterministic status and provenance rules, persistence/hydration, checkpoint routing, Passport v2, reset/recovery, and restrained responsive refinement.
+- **Testing:** created focused domain, storage, hydration, component, Passport, reset, and failure-path tests; ran typecheck, lint, tests, builds, diff checks, and responsive browser walkthroughs.
+- **Review:** responded to independent evidence-contract and persistence-feedback reviews with narrow corrections, kept work on a Draft PR, and separated verified behavior from browser or deployment limitations.
+
+The final Codex `/feedback` Session ID has not been created. Its designated recording location is [the Build Week evidence document](docs/BUILD_WEEK_EVIDENCE.md); do not add an invented value.
 
 ## Current limitations
 
@@ -86,6 +108,6 @@ The application builds to `dist/` and includes a Vercel SPA rewrite so direct ch
 - The browser does not run fastText or analyze papers and repositories automatically.
 - No backend, model/API integration, authentication, multi-user storage, or general migration framework.
 - Browser storage is device-local; advanced recovery and storage migration remain out of scope.
-- Detailed mobile refinement and exhaustive browser coverage remain future work.
+- Responsive QA covers the primary 1440, 1024, 768, and 390 px layouts, but exhaustive cross-browser and device coverage remains out of scope.
 
 These boundaries are deliberate: the current release prioritizes a complete, auditable three-minute reproduction workflow.
