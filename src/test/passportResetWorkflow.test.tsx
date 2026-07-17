@@ -164,6 +164,27 @@ describe("curated reset and release recovery", () => {
     );
   });
 
+  it("shows only the persistence error when a confirmed reset cannot be saved", async () => {
+    const user = userEvent.setup();
+    expect(saveProject(modifiedProject())).toBe(true);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderRoute(checkpointPath("run-minimal-target"));
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => {
+      throw new Error("storage unavailable");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Reset curated demo" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /could not save to browser storage/i
+    );
+    expect(
+      screen.queryByText(
+        "Curated demo reset to the reviewed seven-checkpoint seed."
+      )
+    ).not.toBeInTheDocument();
+  });
+
   it("shows a visible message when an export fails", async () => {
     const user = userEvent.setup();
     expect(saveProject(verifiedFullProtocolProjectFixture())).toBe(true);

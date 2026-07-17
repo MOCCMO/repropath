@@ -2,6 +2,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
   type PropsWithChildren
 } from "react";
@@ -26,16 +27,28 @@ export function ProjectProvider({ children }: PropsWithChildren) {
         : "ReproPath could not load the saved project. Reset the curated demo to recover."
   );
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
+  const pendingResetUpdatedAt = useRef<string | null>(null);
 
   useEffect(() => {
     if (!state.project) return;
-    const result = saveProjectResult(state.project);
+    const project = state.project;
+    const result = saveProjectResult(project);
     let active = true;
     queueMicrotask(() => {
       if (!active) return;
       if (result.ok) {
         setPersistenceError(null);
+        if (pendingResetUpdatedAt.current === project.updatedAt) {
+          pendingResetUpdatedAt.current = null;
+          setStatusNotice(
+            "Curated demo reset to the reviewed seven-checkpoint seed."
+          );
+        }
         return;
+      }
+      if (pendingResetUpdatedAt.current === project.updatedAt) {
+        pendingResetUpdatedAt.current = null;
+        setStatusNotice(null);
       }
       setPersistenceError(
         result.reason === "storage_unavailable"
@@ -63,14 +76,14 @@ export function ProjectProvider({ children }: PropsWithChildren) {
         });
       },
       resetCuratedProject: () => {
+        const now = new Date().toISOString();
+        pendingResetUpdatedAt.current = now;
+        setStatusNotice(null);
         dispatch({
           type: "reset_curated",
           demo,
-          now: new Date().toISOString()
+          now
         });
-        setStatusNotice(
-          "Curated demo reset to the reviewed seven-checkpoint seed."
-        );
       },
       updateEvidence: (patch) => {
         setStatusNotice(null);
