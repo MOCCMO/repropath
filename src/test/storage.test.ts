@@ -14,6 +14,18 @@ describe("project browser persistence", () => {
     expect(loadProject()).toEqual(project);
   });
 
+  it("keeps a v2 project stable across repeated reloads", () => {
+    const project = verifiedFullProtocolProjectFixture();
+    expect(saveProject(project)).toBe(true);
+
+    const firstReload = loadProject();
+    const secondReload = loadProject();
+
+    expect(firstReload).toEqual(project);
+    expect(secondReload).toEqual(firstReload);
+    expect(secondReload?.schemaVersion).toBe(2);
+  });
+
   it("returns null for malformed stored data without overwriting it", () => {
     localStorage.setItem(STORAGE_KEY, "{not-json");
     expect(loadProject()).toBeNull();
