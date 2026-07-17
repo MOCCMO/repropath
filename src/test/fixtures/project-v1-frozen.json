@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "fasttext-bag-of-tricks",
+  "createdAt": "2026-07-17T08:00:00.000Z",
+  "updatedAt": "2026-07-17T08:00:00.000Z",
+  "evidence": {
+    "environment": "macOS 26.5.1; arm64; Apple clang 21.0.0; fastText 1142dc4c4ecbc19cc16eee5cdd28472e689267e6",
+    "trainingCommand": "./fasttext supervised -input <repropath>/public/demo/mini-news.train.txt -output <scratch>/repropath-mini -dim 10 -lr 0.25 -wordNgrams 2 -minCount 1 -bucket 10000 -epoch 25 -thread 1 -loss softmax",
+    "evaluationCommand": "./fasttext test <scratch>/repropath-mini.bin <repropath>/public/demo/mini-news.test.txt",
+    "logExcerpt": "N\t8\nP@1\t0.875\nR@1\t0.875",
+    "localResult": 0.875,
+    "notes": "Seed evidence was observed twice on the project-authored mini-news fixture.",
+    "resultDatasetScopeConfirmed": true,
+    "runOutcome": "succeeded",
+    "provenance": "verified_demo_run"
+  }
+}

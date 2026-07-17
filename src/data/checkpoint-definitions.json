@@ -1,0 +1,58 @@
+[
+  {
+    "id": "understand-task",
+    "order": 1,
+    "title": "Understand the task",
+    "purpose": "Bound the paper task and the minimal reproduction claim.",
+    "prerequisites": [],
+    "evidenceMode": "curated_verified"
+  },
+  {
+    "id": "connect-repository",
+    "order": 2,
+    "title": "Connect the repository",
+    "purpose": "Pin the official code revision and identify the relevant components.",
+    "prerequisites": ["understand-task"],
+    "evidenceMode": "curated_verified"
+  },
+  {
+    "id": "confirm-data-and-metric",
+    "order": 3,
+    "title": "Confirm data and metric",
+    "purpose": "Separate the paper benchmark from the local teaching fixture.",
+    "prerequisites": ["connect-repository"],
+    "evidenceMode": "curated_verified"
+  },
+  {
+    "id": "prepare-environment",
+    "order": 4,
+    "title": "Prepare the environment",
+    "purpose": "Record the environment and evidence that it is ready for the bounded run.",
+    "prerequisites": ["confirm-data-and-metric"],
+    "evidenceMode": "curated_verified"
+  },
+  {
+    "id": "run-minimal-target",
+    "order": 5,
+    "title": "Run the minimal target",
+    "purpose": "Record the commands, output, result, and dataset-scope confirmation.",
+    "prerequisites": ["prepare-environment"],
+    "evidenceMode": "curated_editable"
+  },
+  {
+    "id": "compare-results",
+    "order": 6,
+    "title": "Compare results",
+    "purpose": "Derive the honest comparison basis from the paper and local evidence.",
+    "prerequisites": ["run-minimal-target"],
+    "evidenceMode": "derived"
+  },
+  {
+    "id": "record-gaps",
+    "order": 7,
+    "title": "Record gaps",
+    "purpose": "Keep unresolved boundaries visible and allow learner-added gaps and notes.",
+    "prerequisites": ["compare-results"],
+    "evidenceMode": "curated_extensible"
+  }
+]

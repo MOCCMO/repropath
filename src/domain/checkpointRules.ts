@@ -66,7 +66,7 @@ export function hasAnyRunEvidence(evidence: RunEvidence): boolean {
 export function deriveCheckpointStatus(
   evidence: RunEvidence
 ): CheckpointStatus {
-  if (evidence.runOutcome === "failed") return "failed";
+  if (evidence.runOutcome === "failed") return "blocked";
   if (
     evidence.runOutcome === "succeeded" &&
     getMissingEvidenceFields(evidence).length === 0

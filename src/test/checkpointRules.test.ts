@@ -19,10 +19,10 @@ describe("checkpoint evidence rules", () => {
     expect(deriveCheckpointStatus(project.evidence)).toBe("in_progress");
   });
 
-  it("records an explicit failed run as failed", () => {
+  it("records an explicit failed run as blocked", () => {
     const project = verifiedProjectFixture();
     project.evidence.runOutcome = "failed";
-    expect(deriveCheckpointStatus(project.evidence)).toBe("failed");
+    expect(deriveCheckpointStatus(project.evidence)).toBe("blocked");
   });
 
   it("rejects a local result below zero", () => {

@@ -105,11 +105,14 @@ export type Project = z.infer<typeof projectSchema>;
 export type SourceReference = z.infer<typeof sourceReferenceSchema>;
 export type EvidenceProvenance = z.infer<typeof evidenceProvenanceSchema>;
 
-export type CheckpointStatus =
-  | "not_started"
-  | "in_progress"
-  | "verified"
-  | "failed";
+export const checkpointStatusSchema = z.enum([
+  "not_started",
+  "in_progress",
+  "verified",
+  "blocked"
+]);
+
+export type CheckpointStatus = z.infer<typeof checkpointStatusSchema>;
 
 export const reproductionStatusSchema = z.enum([
   "insufficient_evidence",
