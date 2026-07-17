@@ -12,7 +12,7 @@ import {
   getFirstIncompletePrerequisite
 } from "../../domain/fullProtocolRules";
 import { useProject } from "../../state/projectContext";
-import { CheckpointEvidenceForm } from "./CheckpointEvidenceForm";
+import { CheckpointEvidenceView } from "./CheckpointEvidenceView";
 import { CheckpointNavigation } from "./CheckpointNavigation";
 import { CheckpointRail } from "./CheckpointRail";
 import { checkpointStatusLabels } from "./checkpointStatusLabels";
@@ -23,7 +23,13 @@ import {
 
 export function CheckpointWorkspacePage() {
   const { projectId, checkpointId: routeCheckpointId } = useParams();
-  const { project, updateEvidence } = useProject();
+  const {
+    project,
+    updateEvidence,
+    updateLearnerNotes,
+    addLearnerGap,
+    removeLearnerGap
+  } = useProject();
   if (!project) return <Navigate to="/" replace />;
 
   const protocolSummary = deriveFullProtocolSummary(project);
@@ -90,7 +96,6 @@ export function CheckpointWorkspacePage() {
   }
 
   const isRunCheckpoint = checkpointId === "run-minimal-target";
-  const runEvidence = project.checkpoints["run-minimal-target"].evidence;
 
   return (
     <AppShell activeStep="checkpoint">
@@ -149,21 +154,14 @@ export function CheckpointWorkspacePage() {
                 Status: {checkpointStatusLabels[checkpointStatus]}
               </span>
             </div>
-            {isRunCheckpoint ? (
-              <CheckpointEvidenceForm
-                evidence={runEvidence}
-                onChange={updateEvidence}
-              />
-            ) : (
-              <div className="read-only-placeholder">
-                <strong>Read-only evidence record</strong>
-                <p>
-                  This route is connected to the full protocol state. Its
-                  structured evidence view is added in the next implementation
-                  commit.
-                </p>
-              </div>
-            )}
+            <CheckpointEvidenceView
+              checkpointId={checkpointId}
+              project={project}
+              onRunEvidenceChange={updateEvidence}
+              onNotesChange={updateLearnerNotes}
+              onAddGap={addLearnerGap}
+              onRemoveGap={removeLearnerGap}
+            />
           </section>
 
           <CheckpointNavigation

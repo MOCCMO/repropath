@@ -1,7 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { paths } from "../../app/paths";
+import { CheckCircle2 } from "lucide-react";
 import { FormField } from "../../components/FormField";
 import { fieldDescriptionIds } from "../../components/formFieldIds";
 import {
@@ -19,7 +17,6 @@ type CheckpointEvidenceFormProps = {
 
 export function CheckpointEvidenceForm({ evidence, onChange }: CheckpointEvidenceFormProps) {
   const [submitted, setSubmitted] = useState(false);
-  const navigate = useNavigate();
   const missing = getMissingEvidenceFields(evidence);
   const missingSet = new Set(missing);
 
@@ -47,10 +44,8 @@ export function CheckpointEvidenceForm({ evidence, onChange }: CheckpointEvidenc
   const submit = (event: FormEvent) => {
     event.preventDefault();
     setSubmitted(true);
-    if (deriveCheckpointStatus(evidence) === "verified") {
-      navigate(paths.passport);
-    }
   };
+  const status = deriveCheckpointStatus(evidence);
 
   return (
     <form className="evidence-form" onSubmit={submit} noValidate>
@@ -209,9 +204,13 @@ export function CheckpointEvidenceForm({ evidence, onChange }: CheckpointEvidenc
       </FormField>
 
       <div className="form-actions">
-        <span className="save-note">Changes are saved in this browser.</span>
+        <span className="save-note">
+          {submitted && status === "verified"
+            ? "Evidence gate satisfied. Continue is available below."
+            : "Valid changes are saved in this browser."}
+        </span>
         <button className="button button-primary" type="submit">
-          Save evidence & view Passport <ArrowRight size={18} />
+          Validate evidence <CheckCircle2 size={18} aria-hidden="true" />
         </button>
       </div>
     </form>

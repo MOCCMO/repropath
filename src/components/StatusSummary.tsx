@@ -22,7 +22,7 @@ export function StatusSummary({ status, missingCount, compact }: StatusSummaryPr
       ? "All required method-level evidence is present."
       : status === "not_reproduced"
         ? "The recorded run outcome is failed."
-        : `${missingCount} required evidence field${missingCount === 1 ? "" : "s"} ${missingCount === 1 ? "remains" : "remain"}.`;
+        : `${missingCount} checkpoint group${missingCount === 1 ? "" : "s"} ${missingCount === 1 ? "remains" : "remain"} incomplete.`;
 
   return (
     <section className={`status-summary status-${status} ${compact ? "is-compact" : ""}`} aria-live="polite">

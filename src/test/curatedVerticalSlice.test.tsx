@@ -74,7 +74,7 @@ describe("curated first vertical slice", () => {
     expect(screen.getAllByText(/^in progress$/i).length).toBeGreaterThan(0);
 
     await user.click(
-      screen.getByRole("button", { name: /save evidence & view passport/i })
+      screen.getByRole("button", { name: /validate evidence/i })
     );
 
     expect(

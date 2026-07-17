@@ -80,8 +80,8 @@ export function IntakePage() {
           </section>
 
           <aside className="protocol-preview" aria-labelledby="protocol-heading">
-            <span className="aside-index">First slice</span>
-            <h2 id="protocol-heading">One target. One evidence gate.</h2>
+            <span className="aside-index">Curated protocol</span>
+            <h2 id="protocol-heading">Seven checkpoints. One bounded claim.</h2>
             <ol>
               <li>
                 <span>01</span>
@@ -106,8 +106,8 @@ export function IntakePage() {
               </li>
             </ol>
             <p className="aside-note">
-              Custom projects and the full checkpoint sequence are intentionally
-              held for review.
+              Curated, editable, and derived evidence remain visibly distinct
+              throughout the workspace.
             </p>
           </aside>
         </div>
