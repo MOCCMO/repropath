@@ -20,7 +20,7 @@ The approved protocol order is:
 
 Checkpoints 1 through 4 are seeded as verified curated evidence. Checkpoint 5 preserves the verified editable run from the first milestone. Checkpoint 6 is derived from sourced paper facts and checkpoint 5 wherever possible. Checkpoint 7 starts with the sourced AG News gap and remains extensible.
 
-The current domain-review stage does not yet replace the one-checkpoint page or add navigation. Those changes follow only after this domain contract is reviewed.
+The production application implements all seven checkpoints with prerequisite-aware navigation, derived locked states, browser persistence, a confirmed curated-demo reset, and Passport v2 Markdown and JSON exports.
 
 ### Run checkpoint requirements
 
@@ -61,7 +61,7 @@ An unresolved benchmark gap does not turn a successful method-level run into a f
 
 ## Prerequisites and locked states
 
-Each checkpoint after the first depends on the immediately preceding checkpoint. A checkpoint with an incomplete prerequisite derives `blocked`. The navigation layer will use the same status map to identify the first incomplete checkpoint and the prerequisite link; it must not infer a separate lock state.
+Each checkpoint after the first depends on the immediately preceding checkpoint. A checkpoint with an incomplete prerequisite derives `blocked`. Production navigation uses the same status map to identify the first incomplete checkpoint and the prerequisite link; it does not infer a separate lock state.
 
 ## Comparison rule
 

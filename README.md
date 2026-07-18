@@ -2,9 +2,9 @@
 
 ReproPath is an Education-track web application for first-time NLP learners. It turns a paper-to-code reproduction attempt into a fixed, evidence-gated protocol and an exportable Reproduction Passport.
 
-- **Public production baseline:** [repropath.vercel.app](https://repropath.vercel.app) — frozen first vertical slice at commit `9553013d4b5042131a9be08a8c110da42f74ed62`; Vercel status `Ready`; intentionally unchanged while Draft PR #1 is reviewed.
-- **Full-protocol Preview:** [repropath-full-protocol-preview.vercel.app](https://repropath-full-protocol-preview.vercel.app) — feature-branch Preview only; it is not the production alias.
-- **Draft PR:** [#1 — complete ReproPath seven-checkpoint protocol workspace](https://github.com/MOCCMO/repropath/pull/1)
+- **Public production application:** [repropath.vercel.app](https://repropath.vercel.app) — the complete seven-checkpoint workspace is live in production.
+- **Final main commit:** [`f71eb25c453fe7620d5301ebec00a4375696e400`](https://github.com/MOCCMO/repropath/commit/f71eb25c453fe7620d5301ebec00a4375696e400)
+- **Merged PR:** [#1 — complete ReproPath seven-checkpoint protocol workspace](https://github.com/MOCCMO/repropath/pull/1)
 
 The current curated workflow guides a learner through seven ordered checkpoints:
 
@@ -52,7 +52,7 @@ npm run test -- --run
 npm run build
 ```
 
-The final pre-merge local run passes **11 test files and 78 tests**. GitHub Actions repeats the same commands with Node.js 22 and npm caching on every pull request and every push to `main`; superseded runs are cancelled. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+The final release verification passes **11 test files and 78 tests**. GitHub Actions repeats the same commands with Node.js 22 and npm caching on every pull request and every push to `main`; superseded runs are cancelled. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and the [successful final main run](https://github.com/MOCCMO/repropath/actions/runs/29590269107).
 
 To inspect the production build locally:
 
@@ -88,18 +88,17 @@ When the local metric is `P@1`, ReproPath stores and displays it as a proportion
 
 The application builds to `dist/` and includes a Vercel SPA rewrite so direct checkpoint-route refreshes resolve correctly. Import the repository into Vercel with `npm run build` as the build command and `dist` as the output directory. No environment variables or API keys are required.
 
-The public production deployment remains the frozen first-slice baseline. Full-protocol work is published only to the feature Preview until Draft PR #1 is approved, marked ready, merged, and explicitly promoted in a later stage. The repository CI workflow does not contain Vercel credentials or deployment steps.
+The complete seven-checkpoint workspace from final main commit `f71eb25c453fe7620d5301ebec00a4375696e400` is deployed at [repropath.vercel.app](https://repropath.vercel.app). PR #1 is merged. The repository CI workflow does not contain Vercel credentials or deployment steps.
 
-## How Codex contributed
+## How Codex and GPT-5.6 were used
 
-Codex was used as the primary Build Week implementation workspace while human review controlled every stage boundary:
+GPT-5.6 Thinking supported product scoping, research-boundary review, milestone critique, evidence-contract review, and submission planning.
 
-- **Planning:** translated the Education-track concept into a fixed seven-checkpoint protocol, explicit P0/P1/P2 scope, acceptance criteria, and a smallest vertical slice.
-- **Implementation:** scaffolded the Vite/React application, encoded sourced curated facts, deterministic status and provenance rules, persistence/hydration, checkpoint routing, Passport v2, reset/recovery, and restrained responsive refinement.
-- **Testing:** created focused domain, storage, hydration, component, Passport, reset, and failure-path tests; ran typecheck, lint, tests, builds, diff checks, and responsive browser walkthroughs.
-- **Review:** responded to independent evidence-contract and persistence-feedback reviews with narrow corrections, kept work on a Draft PR, and separated verified behavior from browser or deployment limitations.
+Codex implemented, tested, reviewed, documented, and deployed the React application through the primary build task. Human review controlled every stage boundary and kept sourced facts, observed run evidence, and unsupported claims distinct.
 
-The final Codex `/feedback` Session ID has not been created. Its designated recording location is [the Build Week evidence document](docs/BUILD_WEEK_EVIDENCE.md); do not add an invented value.
+GPT-5.6 Thinking was part of the development and review workflow. The production application does not call GPT-5.6 at runtime and has no model or API integration.
+
+The final Codex `/feedback` Session ID was generated and stored privately. It is intentionally not included in this public repository.
 
 ## Current limitations
 

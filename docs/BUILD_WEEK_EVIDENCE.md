@@ -1,15 +1,14 @@
 # ReproPath Build Week Release Evidence
 
-This document is the pre-merge evidence register for ReproPath's curated seven-checkpoint protocol. It records what has been verified without implying that Draft PR #1 has been merged or that the full protocol has replaced the public production baseline.
+This document is the final release evidence register for ReproPath's curated seven-checkpoint protocol.
 
 ## Repository state
 
 - Repository: <https://github.com/MOCCMO/repropath>
-- Frozen baseline commit: `9553013d4b5042131a9be08a8c110da42f74ed62`
-- Feature branch: `feat/full-reproduction-protocol`
-- Draft PR: <https://github.com/MOCCMO/repropath/pull/1>
-- Public production baseline: <https://repropath.vercel.app> — Vercel target `production`, status `Ready`, frozen first vertical slice
-- Full-protocol Preview: <https://repropath-full-protocol-preview.vercel.app> — feature Preview only, not the production alias
+- Final main and merge commit: `f71eb25c453fe7620d5301ebec00a4375696e400`
+- Merged PR: <https://github.com/MOCCMO/repropath/pull/1>
+- Public production application: <https://repropath.vercel.app> — complete seven-checkpoint workspace
+- Successful final main CI: <https://github.com/MOCCMO/repropath/actions/runs/29590269107>
 
 ## Important milestone commits
 
@@ -26,7 +25,7 @@ This document is the pre-merge evidence register for ReproPath's curated seven-c
 - `7fbd73e` — restrained responsive, accessibility, and metric-display refinement
 - `71e8148` — GitHub Actions repository verification
 
-The documentation commit containing this evidence file is listed in the final task report after it is created.
+The release history culminates in merge commit `f71eb25c453fe7620d5301ebec00a4375696e400` on `main`.
 
 ## Verification commands
 
@@ -36,11 +35,15 @@ npm run typecheck
 npm run lint
 npm run test -- --run
 npm run build
-git diff --check main...HEAD
+git diff --check
 git status --short --branch
 ```
 
-The final pre-merge local test run passes **11 test files and 78 tests**. GitHub Actions runs the same verification sequence on pull requests and pushes to `main` using Node.js 22 and npm caching.
+The final release verification passes **11 test files and 78 tests**. GitHub Actions runs the same verification sequence on pull requests and pushes to `main` using Node.js 22 and npm caching. Main CI run `29590269107` completed successfully.
+
+## Production deployment evidence
+
+The complete seven-checkpoint workspace is live at <https://repropath.vercel.app>. The production application includes prerequisite-aware checkpoint navigation, derived locked states, browser persistence, the confirmed curated-demo reset, and Passport v2 Markdown and JSON exports. No account, credentials, environment variables, API key, backend, or paid runtime dependency is required to test the public application.
 
 ## Seven-checkpoint demo evidence
 
@@ -60,28 +63,23 @@ For local `P@1`, `0.875` is a proportion equivalent to 87.5%; it is not 0.875%. 
 
 Passport schema version 2 records project and source timestamps, paper and repository metadata, the bounded target, deterministic project status, seven ordered checkpoint records, evidence modes and provenance, source references, missing requirements, structured comparison data, structured gaps with claim impact, learner notes, grouped missing evidence, and explicit method-target and paper-benchmark claim boundaries. Markdown and JSON derive from the same validated Passport object.
 
-## Codex contribution summary
+## How Codex and GPT-5.6 were used
 
-Codex supported the project across four reviewed phases:
+GPT-5.6 Thinking supported product scoping, research-boundary review, milestone critique, evidence-contract review, and submission planning.
 
-- product and implementation planning, scope control, and acceptance gates;
-- application, domain, persistence, routing, Passport, and recovery implementation;
-- focused unit/component testing, production builds, CI configuration, browser QA, and Vercel Preview preparation;
-- iterative review corrections for factual provenance, evidence completeness, invalid-draft safety, hydration idempotence, reset persistence feedback, accessibility, and responsive legibility.
+Codex implemented, tested, reviewed, documented, and deployed the React application through the primary build task. This included the application domain, persistence and hydration, checkpoint routing, Passport v2, reset and recovery, focused tests, CI configuration, browser QA, responsive refinement, and production deployment.
 
 Human review approved each milestone before the next stage began. Codex did not supply paper-benchmark results, replace source verification, run arbitrary learner repositories in the browser, or broaden the project into automatic analysis or a paid API workflow.
 
+GPT-5.6 Thinking and Codex were used in the development workflow. The production application does not call GPT-5.6 at runtime and has no model or API integration.
+
 ## Final `/feedback` Session ID
 
-**Not recorded yet.** After the final review, run `/feedback` in this same Codex task and record the returned Session ID here. Do not substitute a thread ID, commit SHA, PR number, or invented placeholder.
+The final Codex `/feedback` Session ID was generated and stored privately. The ID itself is intentionally excluded from this public evidence file and repository.
 
 ## Still required for Devpost submission
 
-- complete the final review and decide whether Draft PR #1 is ready to mark Ready for review;
-- run `/feedback` in this Codex task and record the real Session ID above;
-- merge and promote the full protocol only after explicit approval;
-- update the final public deployment evidence after promotion;
-- record the final three-minute demo video using the reviewed script;
+- record the final under-three-minute demo video using the reviewed script;
 - select final screenshots and prepare the concise project description and claim boundary for Devpost;
 - confirm that the public repository, setup instructions, sample teaching data, license, and deployment link are accessible;
 - submit the required Devpost materials before the user-provided deadline of July 21 at 5 PM Pacific Time.
